@@ -38,9 +38,12 @@ export default function SettingsPage() {
                     support@violetbites.com
                 </a>
             </div>
-            <div className="flex items-center gap-4">
-                <Phone className="size-5 text-muted-foreground" />
-                <span>+1 (234) 567-890</span>
+            <div className="flex items-start gap-4">
+                <Phone className="size-5 text-muted-foreground mt-1" />
+                <div className="flex flex-col">
+                  <span>9940918442</span>
+                  <span>6383350445</span>
+                </div>
             </div>
             <div className="flex items-start gap-4">
                 <MapPin className="size-5 text-muted-foreground mt-1" />
