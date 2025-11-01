@@ -72,7 +72,7 @@ export default function MenuManagementPage() {
                 <TableCell>
                   <Badge variant="outline" className="capitalize">{item.category}</Badge>
                 </TableCell>
-                <TableCell>₹{item.price.toFixed(2)}</TableCell>
+                <TableCell>{item.price.toFixed(2)}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

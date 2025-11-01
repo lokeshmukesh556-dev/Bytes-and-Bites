@@ -72,7 +72,7 @@ export default function AdminOrdersPage() {
                     {order.status}
                   </Badge>
                 </TableCell>
-                <TableCell>₹{order.total.toFixed(2)}</TableCell>
+                <TableCell>{order.total.toFixed(2)}</TableCell>
                 <TableCell>{order.date.toLocaleTimeString()}</TableCell>
                 <TableCell>
                   <DropdownMenu>

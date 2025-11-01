@@ -1,3 +1,5 @@
+'use client';
+
 import { AppHeader } from '@/components/shared/header';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,10 +11,18 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function PaymentPage() {
-  const orderId = `VB${Date.now()}`;
+  const { total } = useCart();
+  const [orderId, setOrderId] = useState('');
+
+  useEffect(() => {
+    setOrderId(`VB${Date.now()}`);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -21,7 +31,7 @@ export default function PaymentPage() {
           <CardHeader>
             <CardTitle>Complete Your Payment</CardTitle>
             <CardDescription>
-              Choose your payment method. Total: ₹201.00
+              Choose your payment method. Total: {total.toFixed(2)}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -51,7 +61,7 @@ export default function PaymentPage() {
               </Button>
             </div>
 
-            <Button asChild className="w-full text-lg py-6">
+            <Button asChild className="w-full text-lg py-6" disabled={total === 0 || !orderId}>
               <Link href={`/order-confirmation/${orderId}`}>Pay Now</Link>
             </Button>
           </CardContent>
