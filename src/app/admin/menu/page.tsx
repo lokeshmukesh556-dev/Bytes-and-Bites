@@ -55,6 +55,7 @@ export default function MenuManagementPage() {
   const handleSaveItem = async (
     itemData: Omit<MenuItemData, 'imageUrl' | 'imageHint'> & {
       imageFile?: File;
+      description?: string;
     },
     id?: string
   ) => {
@@ -64,7 +65,10 @@ export default function MenuManagementPage() {
 
     if (imageFile) {
       const storage = getStorage(firebaseApp);
-      const storageRef = ref(storage, `menu_items/${Date.now()}_${imageFile.name}`);
+      const storageRef = ref(
+        storage,
+        `menu_items/${Date.now()}_${imageFile.name}`
+      );
       const snapshot = await uploadBytes(storageRef, imageFile);
       imageUrl = await getDownloadURL(snapshot.ref);
     } else if (!id) {
@@ -76,6 +80,7 @@ export default function MenuManagementPage() {
 
     const finalItemData: MenuItemData = {
       ...restData,
+      description: restData.description || '', // Ensure description is not undefined
       imageUrl,
       imageHint,
     };
@@ -130,54 +135,55 @@ export default function MenuManagementPage() {
                   </TableCell>
                 </TableRow>
               )}
-              {!isLoading && menuItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={item.name}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={item.imageUrl}
-                      width="64"
-                      data-ai-hint={item.imageHint}
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{item.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="capitalize">
-                      {item.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{item.price.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleOpenDialog(item)}
-                        >
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={() => handleDeleteItem(item.id)}
-                        >
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {!isLoading &&
+                menuItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="hidden sm:table-cell">
+                      <Image
+                        alt={item.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={item.imageUrl}
+                        width="64"
+                        data-ai-hint={item.imageHint}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        {item.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{item.price.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleOpenDialog(item)}
+                          >
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => handleDeleteItem(item.id)}
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </CardContent>

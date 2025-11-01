@@ -24,12 +24,13 @@ import {
 import { useMemoFirebase } from '@/firebase/provider';
 
 // Redefine MenuItem to use imageUrl directly
-export interface MenuItemData extends Omit<MenuItem, 'id' | 'image' | 'description'> {
+export interface MenuItemData extends Omit<MenuItem, 'id' | 'image'> {
   name: string;
   price: number;
   category: 'meal' | 'snack';
   imageUrl: string;
   imageHint: string;
+  description: string;
 }
 
 export type MenuItemWithId = WithId<MenuItemData>;
@@ -54,9 +55,8 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     [firestore]
   );
 
-  const { data: menuItems, isLoading: isMenuLoading } = useCollection<MenuItemData>(
-    menuItemsCollection
-  );
+  const { data: menuItems, isLoading: isMenuLoading } =
+    useCollection<MenuItemData>(menuItemsCollection);
 
   // Seed initial data if the collection is empty
   useEffect(() => {
@@ -64,10 +64,10 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     if (isUserLoading || isMenuLoading) {
       return;
     }
-    
+
     if (user && menuItems && menuItems.length === 0) {
       initialMenuItems.forEach((item) => {
-        const { id, image, description, ...rest } = item;
+        const { id, image, ...rest } = item;
         const newItemData: MenuItemData = {
           ...rest,
           imageUrl: image.imageUrl,
