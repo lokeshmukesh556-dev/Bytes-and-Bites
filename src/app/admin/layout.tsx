@@ -13,7 +13,7 @@ import {
   LayoutDashboard,
   Utensils,
   ClipboardList,
-  Settings,
+  LifeBuoy,
   UtensilsCrossed,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -71,8 +71,8 @@ export default function AdminLayout({
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <Link href="/admin/settings">
-                  <Settings />
-                  Settings
+                  <LifeBuoy />
+                  Support
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
