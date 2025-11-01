@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from '../ui/select';
 import type { MenuItem } from '@/lib/data';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters long.'),
@@ -36,20 +37,22 @@ const formSchema = z.object({
   category: z.enum(['meal', 'snack']),
 });
 
-type AddMenuItemFormValues = z.infer<typeof formSchema>;
+type MenuItemFormValues = z.infer<typeof formSchema>;
 
-interface AddMenuItemDialogProps {
+interface MenuItemFormDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onAddItem: (item: Omit<MenuItem, 'id' | 'image' | 'description'>) => void;
+  onSave: (item: Omit<MenuItem, 'id' | 'image' | 'description'>, id?: string) => void;
+  item: MenuItem | null;
 }
 
-export function AddMenuItemDialog({
+export function MenuItemFormDialog({
   isOpen,
   onOpenChange,
-  onAddItem,
-}: AddMenuItemDialogProps) {
-  const form = useForm<AddMenuItemFormValues>({
+  onSave,
+  item,
+}: MenuItemFormDialogProps) {
+  const form = useForm<MenuItemFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
@@ -58,19 +61,38 @@ export function AddMenuItemDialog({
     },
   });
 
-  const onSubmit = (values: AddMenuItemFormValues) => {
-    onAddItem(values);
+  useEffect(() => {
+    if (item) {
+      form.reset(item);
+    } else {
+      form.reset({
+        name: '',
+        price: 0,
+        category: 'meal',
+      });
+    }
+  }, [item, form]);
+
+
+  const onSubmit = (values: MenuItemFormValues) => {
+    onSave(values, item?.id);
     onOpenChange(false);
-    form.reset();
   };
+  
+  const handleDialogClose = (open: boolean) => {
+    if (!open) {
+      form.reset();
+    }
+    onOpenChange(open);
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleDialogClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Menu Item</DialogTitle>
+          <DialogTitle>{item ? 'Edit Menu Item' : 'Add New Menu Item'}</DialogTitle>
           <DialogDescription>
-            Fill in the details for the new item.
+            {item ? 'Update the details for this item.' : 'Fill in the details for the new item.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -107,7 +129,7 @@ export function AddMenuItemDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
+                   <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
@@ -123,10 +145,10 @@ export function AddMenuItemDialog({
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Add Item</Button>
+              <Button type="submit">{item ? 'Save Changes' : 'Add Item'}</Button>
             </DialogFooter>
           </form>
         </Form>

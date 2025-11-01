@@ -27,28 +27,54 @@ import {
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
-import { AddMenuItemDialog } from '@/components/admin/add-menu-item-dialog';
+import { MenuItemFormDialog } from '@/components/admin/menu-item-form-dialog';
 
 export default function MenuManagementPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
 
-  const handleAddItem = (newItem: Omit<MenuItem, 'id' | 'image' | 'description'>) => {
-    const newMenuItem: MenuItem = {
-      ...newItem,
-      id: `item-${Date.now()}`,
-      description: '', // Add an empty description
-      // For simplicity, using a placeholder image.
-      // In a real app, you'd handle image uploads.
-      image: {
-        id: `new-${Date.now()}`,
-        imageUrl: `https://picsum.photos/seed/${Date.now()}/600/400`,
-        imageHint: 'food placeholder',
-        description: 'A new menu item',
-      },
-    };
-    setMenuItems((prev) => [...prev, newMenuItem]);
+  const handleOpenDialog = (item: MenuItem | null = null) => {
+    setEditingItem(item);
+    setIsDialogOpen(true);
   };
+  
+  const handleCloseDialog = () => {
+    setEditingItem(null);
+    setIsDialogOpen(false);
+  }
+
+  const handleSaveItem = (itemData: Omit<MenuItem, 'id' | 'image'>, id?: string) => {
+    if (id) {
+      // Editing existing item
+      setMenuItems((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, ...itemData } : item
+        )
+      );
+    } else {
+      // Adding new item
+      const newMenuItem: MenuItem = {
+        ...itemData,
+        id: `item-${Date.now()}`,
+        description: '', // Add an empty description
+        // For simplicity, using a placeholder image.
+        // In a real app, you'd handle image uploads.
+        image: {
+          id: `new-${Date.now()}`,
+          imageUrl: `https://picsum.photos/seed/${Date.now()}/600/400`,
+          imageHint: 'food placeholder',
+          description: 'A new menu item',
+        },
+      };
+      setMenuItems((prev) => [...prev, newMenuItem]);
+    }
+  };
+
+  const handleDeleteItem = (itemId: string) => {
+    setMenuItems((prev) => prev.filter((item) => item.id !== itemId));
+  };
+
 
   return (
     <>
@@ -60,7 +86,7 @@ export default function MenuManagementPage() {
               Add, edit, or remove items from your canteen's menu.
             </CardDescription>
           </div>
-          <Button onClick={() => setIsDialogOpen(true)}>
+          <Button onClick={() => handleOpenDialog()}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Add New Item
           </Button>
@@ -113,8 +139,11 @@ export default function MenuManagementPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
+                        <DropdownMenuItem onClick={() => handleOpenDialog(item)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => handleDeleteItem(item.id)}
+                        >
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -126,10 +155,11 @@ export default function MenuManagementPage() {
           </Table>
         </CardContent>
       </Card>
-      <AddMenuItemDialog
+      <MenuItemFormDialog
         isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onAddItem={handleAddItem}
+        onOpenChange={handleCloseDialog}
+        onSave={handleSaveItem}
+        item={editingItem}
       />
     </>
   );
