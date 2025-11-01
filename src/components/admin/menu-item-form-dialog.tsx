@@ -35,8 +35,9 @@ const formSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters long.'),
   price: z.coerce.number().positive('Price must be a positive number.'),
   category: z.enum(['meal', 'snack']),
-  imageFile: z.instanceof(FileList).optional(),
+  imageFile: z.any().optional(),
 });
+
 
 type MenuItemFormValues = z.infer<typeof formSchema>;
 
