@@ -60,18 +60,25 @@ export default function MenuManagementPage() {
   ) => {
     const { imageFile, ...restData } = itemData;
     let imageUrl = editingItem?.imageUrl || '';
+    let imageHint = editingItem?.imageHint || 'food';
 
     if (imageFile) {
       const storage = getStorage(firebaseApp);
       const storageRef = ref(storage, `menu_items/${Date.now()}_${imageFile.name}`);
       const snapshot = await uploadBytes(storageRef, imageFile);
       imageUrl = await getDownloadURL(snapshot.ref);
+    } else if (!id) {
+      // If it's a new item without an image, use a placeholder
+      const randomSeed = Math.floor(Math.random() * 1000);
+      imageUrl = `https://picsum.photos/seed/${randomSeed}/600/400`;
+      imageHint = 'food placeholder';
     }
+
 
     const finalItemData: MenuItemData = {
       ...restData,
       imageUrl,
-      imageHint: 'food', // Generic hint for now
+      imageHint,
     };
     
     if (id) {
@@ -79,6 +86,7 @@ export default function MenuManagementPage() {
     } else {
       addMenuItem(finalItemData);
     }
+    handleCloseDialog();
   };
 
   const handleDeleteItem = (itemId: string) => {
