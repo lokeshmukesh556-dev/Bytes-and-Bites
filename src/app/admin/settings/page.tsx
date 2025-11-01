@@ -42,7 +42,7 @@ export default function SettingsPage() {
                 <Phone className="size-5 text-muted-foreground mt-1" />
                 <div className="flex flex-col">
                   <span>+91 9940918442</span>
-                  <span>+91 6383350445</span>
+                  <span>+91 6383350423</span>
                 </div>
             </div>
             <div className="flex items-start gap-4">
