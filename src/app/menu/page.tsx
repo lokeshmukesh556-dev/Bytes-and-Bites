@@ -16,19 +16,29 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { type MenuItem } from '@/lib/data';
 import { PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/hooks/use-toast';
-import { useMenu } from '@/context/MenuContext';
+import { useMenu, type MenuItemWithId } from '@/context/MenuContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
-function MenuItemCard({ item }: { item: MenuItem }) {
+function MenuItemCard({ item }: { item: MenuItemWithId }) {
   const { addToCart } = useCart();
   const { toast } = useToast();
 
   const handleAddToCart = () => {
-    addToCart(item);
+    // The cart context expects a slightly different structure, so we adapt it here.
+    const cartItem = {
+      ...item,
+      image: {
+        id: item.id,
+        imageUrl: item.imageUrl,
+        imageHint: item.imageHint,
+        description: item.name,
+      },
+    };
+    addToCart(cartItem);
     toast({
       title: 'Added to cart',
       description: `${item.name} has been added to your cart.`,
@@ -39,12 +49,12 @@ function MenuItemCard({ item }: { item: MenuItem }) {
     <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
       <CardHeader className="p-0">
         <Image
-          src={item.image.imageUrl}
+          src={item.imageUrl}
           alt={item.name}
           width={600}
           height={400}
           className="w-full h-48 object-cover"
-          data-ai-hint={item.image.imageHint}
+          data-ai-hint={item.imageHint}
         />
       </CardHeader>
       <CardContent className="p-4 flex-grow">
@@ -62,8 +72,29 @@ function MenuItemCard({ item }: { item: MenuItem }) {
   );
 }
 
+function MenuSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {[...Array(3)].map((_, i) => (
+        <Card key={i} className="flex flex-col overflow-hidden shadow-md">
+          <Skeleton className="w-full h-48" />
+          <CardContent className="p-4 flex-grow space-y-2">
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-1/2" />
+          </CardContent>
+          <CardFooter className="p-4 flex justify-between items-center bg-muted/50">
+            <Skeleton className="h-8 w-16" />
+            <Skeleton className="h-9 w-28" />
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 export default function MenuPage() {
-  const { getMeals, getSnacks } = useMenu();
+  const { getMeals, getSnacks, isLoading } = useMenu();
   const meals = getMeals();
   const snacks = getSnacks();
 
@@ -85,18 +116,26 @@ export default function MenuPage() {
             <TabsTrigger value="snacks">Snacks & Beverages</TabsTrigger>
           </TabsList>
           <TabsContent value="meals">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {meals.map((item) => (
-                <MenuItemCard key={item.id} item={item} />
-              ))}
-            </div>
+            {isLoading ? (
+              <MenuSkeleton />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {meals.map((item) => (
+                  <MenuItemCard key={item.id} item={item} />
+                ))}
+              </div>
+            )}
           </TabsContent>
           <TabsContent value="snacks">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {snacks.map((item) => (
-                <MenuItemCard key={item.id} item={item} />
-              ))}
-            </div>
+            {isLoading ? (
+              <MenuSkeleton />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {snacks.map((item) => (
+                  <MenuItemCard key={item.id} item={item} />
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </main>

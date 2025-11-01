@@ -1,46 +1,111 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from 'react';
+import {
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+} from 'firebase/firestore';
+import { useCollection, useFirestore, WithId } from '@/firebase';
 import { menuItems as initialMenuItems, type MenuItem } from '@/lib/data';
+import {
+  addDocumentNonBlocking,
+  updateDocumentNonBlocking,
+  deleteDocumentNonBlocking,
+} from '@/firebase/non-blocking-updates';
+import { useMemoFirebase } from '@/firebase/provider';
+
+// Redefine MenuItem to use imageUrl directly
+export interface MenuItemData extends Omit<MenuItem, 'id' | 'image'> {
+  imageUrl: string;
+  imageHint: string;
+}
+
+export type MenuItemWithId = WithId<MenuItemData>;
 
 interface MenuContextType {
-  menuItems: MenuItem[];
-  addMenuItem: (item: MenuItem) => void;
-  updateMenuItem: (item: MenuItem) => void;
+  menuItems: MenuItemWithId[];
+  addMenuItem: (item: MenuItemData) => void;
+  updateMenuItem: (id: string, item: Partial<MenuItemData>) => void;
   deleteMenuItem: (itemId: string) => void;
-  getMeals: () => MenuItem[];
-  getSnacks: () => MenuItem[];
+  getMeals: () => MenuItemWithId[];
+  getSnacks: () => MenuItemWithId[];
+  isLoading: boolean;
 }
 
 const MenuContext = createContext<MenuContextType | undefined>(undefined);
 
 export function MenuProvider({ children }: { children: ReactNode }) {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+  const firestore = useFirestore();
+  const menuItemsCollection = useMemoFirebase(
+    () => collection(firestore, 'menu_items'),
+    [firestore]
+  );
 
-  const addMenuItem = (item: MenuItem) => {
-    setMenuItems((prev) => [...prev, item]);
+  const { data: menuItems, isLoading } = useCollection<MenuItemData>(
+    menuItemsCollection
+  );
+
+  // Seed initial data if the collection is empty
+  useEffect(() => {
+    if (menuItems && menuItems.length === 0 && !isLoading) {
+      initialMenuItems.forEach(async (item) => {
+        const { id, image, ...rest } = item;
+        const newItemData: MenuItemData = {
+          ...rest,
+          imageUrl: image.imageUrl,
+          imageHint: image.imageHint,
+        };
+        await addDoc(collection(firestore, 'menu_items'), newItemData);
+      });
+    }
+  }, [menuItems, isLoading, firestore]);
+
+  const addMenuItem = (item: MenuItemData) => {
+    if (!firestore) return;
+    addDocumentNonBlocking(collection(firestore, 'menu_items'), item);
   };
 
-  const updateMenuItem = (updatedItem: MenuItem) => {
-    setMenuItems((prev) =>
-      prev.map((item) => (item.id === updatedItem.id ? updatedItem : item))
-    );
+  const updateMenuItem = (id: string, updatedItem: Partial<MenuItemData>) => {
+    if (!firestore) return;
+    const docRef = doc(firestore, 'menu_items', id);
+    updateDocumentNonBlocking(docRef, updatedItem);
   };
 
   const deleteMenuItem = (itemId: string) => {
-    setMenuItems((prev) => prev.filter((item) => item.id !== itemId));
+    if (!firestore) return;
+    const docRef = doc(firestore, 'menu_items', itemId);
+    deleteDocumentNonBlocking(docRef);
   };
-  
+
   const getMeals = () => {
-    return menuItems.filter(item => item.category === 'meal');
-  }
+    return menuItems?.filter((item) => item.category === 'meal') || [];
+  };
 
   const getSnacks = () => {
-    return menuItems.filter(item => item.category === 'snack');
-  }
+    return menuItems?.filter((item) => item.category === 'snack') || [];
+  };
 
   return (
-    <MenuContext.Provider value={{ menuItems, addMenuItem, updateMenuItem, deleteMenuItem, getMeals, getSnacks }}>
+    <MenuContext.Provider
+      value={{
+        menuItems: menuItems || [],
+        addMenuItem,
+        updateMenuItem,
+        deleteMenuItem,
+        getMeals,
+        getSnacks,
+        isLoading,
+      }}
+    >
       {children}
     </MenuContext.Provider>
   );

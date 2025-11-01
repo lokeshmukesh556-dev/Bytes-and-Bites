@@ -16,7 +16,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { type MenuItem } from '@/lib/data';
+import {
+  type MenuItemData,
+  type MenuItemWithId,
+  useMenu,
+} from '@/context/MenuContext';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import {
   DropdownMenu,
@@ -28,67 +32,58 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { MenuItemFormDialog } from '@/components/admin/menu-item-form-dialog';
-import { useMenu } from '@/context/MenuContext';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useFirebaseApp } from '@/firebase';
 
 export default function MenuManagementPage() {
-  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem } = useMenu();
+  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem, isLoading } =
+    useMenu();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [editingItem, setEditingItem] = useState<MenuItemWithId | null>(null);
+  const firebaseApp = useFirebaseApp();
 
-  const handleOpenDialog = (item: MenuItem | null = null) => {
+  const handleOpenDialog = (item: MenuItemWithId | null = null) => {
     setEditingItem(item);
     setIsDialogOpen(true);
   };
-  
+
   const handleCloseDialog = () => {
     setEditingItem(null);
     setIsDialogOpen(false);
-  }
+  };
 
-  const handleSaveItem = (itemData: Omit<MenuItem, 'id' | 'image' | 'description'> & { imageFile?: File }, id?: string) => {
+  const handleSaveItem = async (
+    itemData: Omit<MenuItemData, 'imageUrl' | 'imageHint'> & {
+      imageFile?: File;
+    },
+    id?: string
+  ) => {
     const { imageFile, ...restData } = itemData;
-    
-    let imageUrl = '';
+    let imageUrl = editingItem?.imageUrl || '';
+
     if (imageFile) {
-        imageUrl = URL.createObjectURL(imageFile);
+      const storage = getStorage(firebaseApp);
+      const storageRef = ref(storage, `menu_items/${Date.now()}_${imageFile.name}`);
+      const snapshot = await uploadBytes(storageRef, imageFile);
+      imageUrl = await getDownloadURL(snapshot.ref);
     }
 
+    const finalItemData: MenuItemData = {
+      ...restData,
+      imageUrl,
+      imageHint: 'food', // Generic hint for now
+    };
+    
     if (id) {
-      // Editing existing item
-      const existingItem = menuItems.find(item => item.id === id);
-      if (!existingItem) return;
-
-      const updatedItem: MenuItem = {
-        ...existingItem,
-        ...restData,
-        image: {
-          ...existingItem.image,
-          imageUrl: imageUrl || existingItem.image.imageUrl
-        }
-      }
-      updateMenuItem(updatedItem);
+      updateMenuItem(id, finalItemData);
     } else {
-      // Adding new item
-      const newMenuItem: MenuItem = {
-        ...restData,
-        id: `item-${Date.now()}`,
-        description: '', // Add an empty description
-        // For simplicity, using a placeholder image if no URL is provided.
-        image: {
-          id: `new-${Date.now()}`,
-          imageUrl: imageUrl || `https://picsum.photos/seed/${Date.now()}/600/400`,
-          imageHint: 'food placeholder',
-          description: 'A new menu item',
-        },
-      };
-      addMenuItem(newMenuItem);
+      addMenuItem(finalItemData);
     }
   };
 
   const handleDeleteItem = (itemId: string) => {
     deleteMenuItem(itemId);
   };
-
 
   return (
     <>
@@ -121,16 +116,23 @@ export default function MenuManagementPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {menuItems.map((item) => (
+              {isLoading && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">
+                    Loading menu...
+                  </TableCell>
+                </TableRow>
+              )}
+              {!isLoading && menuItems.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="hidden sm:table-cell">
                     <Image
                       alt={item.name}
                       className="aspect-square rounded-md object-cover"
                       height="64"
-                      src={item.image.imageUrl}
+                      src={item.imageUrl}
                       width="64"
-                      data-ai-hint={item.image.imageHint}
+                      data-ai-hint={item.imageHint}
                     />
                   </TableCell>
                   <TableCell className="font-medium">{item.name}</TableCell>
@@ -153,7 +155,11 @@ export default function MenuManagementPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleOpenDialog(item)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleOpenDialog(item)}
+                        >
+                          Edit
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => handleDeleteItem(item.id)}

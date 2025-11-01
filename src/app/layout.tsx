@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/CartContext';
 import { MenuProvider } from '@/context/MenuContext';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'Violet Bites',
@@ -25,11 +26,11 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <MenuProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
-        </MenuProvider>
+        <FirebaseClientProvider>
+          <MenuProvider>
+            <CartProvider>{children}</CartProvider>
+          </MenuProvider>
+        </FirebaseClientProvider>
         <Toaster />
       </body>
     </html>

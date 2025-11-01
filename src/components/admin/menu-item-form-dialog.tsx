@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import type { MenuItem } from '@/lib/data';
+import { type MenuItemWithId } from '@/context/MenuContext';
 import { useEffect } from 'react';
 
 const formSchema = z.object({
@@ -38,14 +38,16 @@ const formSchema = z.object({
   imageFile: z.any().optional(),
 });
 
-
 type MenuItemFormValues = z.infer<typeof formSchema>;
 
 interface MenuItemFormDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSave: (item: Omit<MenuItem, 'id' | 'image' | 'description'> & { imageFile?: File }, id?: string) => void;
-  item: MenuItem | null;
+  onSave: (
+    item: Omit<MenuItemFormValues, 'imageFile'> & { imageFile?: File },
+    id?: string
+  ) => void;
+  item: MenuItemWithId | null;
 }
 
 export function MenuItemFormDialog({
@@ -62,8 +64,8 @@ export function MenuItemFormDialog({
       category: 'meal',
     },
   });
-  
-  const imageFileRef = form.register("imageFile");
+
+  const imageFileRef = form.register('imageFile');
 
   useEffect(() => {
     if (item) {
@@ -77,38 +79,44 @@ export function MenuItemFormDialog({
         name: '',
         price: 0,
         category: 'meal',
+        imageFile: undefined,
       });
     }
-  }, [item, form]);
-
+  }, [item, form, isOpen]);
 
   const onSubmit = (values: MenuItemFormValues) => {
-    const dataToSave: Omit<MenuItem, 'id' | 'image' | 'description'> & { imageFile?: File } = {
-        ...values,
+    const dataToSave: Omit<MenuItemFormValues, 'imageFile'> & {
+      imageFile?: File;
+    } = {
+      ...values,
+    };
+
+    if (values.imageFile && values.imageFile.length > 0) {
+      dataToSave.imageFile = values.imageFile[0];
     }
 
-    if(values.imageFile && values.imageFile.length > 0) {
-        dataToSave.imageFile = values.imageFile[0];
-    }
-    
     onSave(dataToSave, item?.id);
     onOpenChange(false);
   };
-  
+
   const handleDialogClose = (open: boolean) => {
     if (!open) {
       form.reset();
     }
     onOpenChange(open);
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{item ? 'Edit Menu Item' : 'Add New Menu Item'}</DialogTitle>
+          <DialogTitle>
+            {item ? 'Edit Menu Item' : 'Add New Menu Item'}
+          </DialogTitle>
           <DialogDescription>
-            {item ? 'Update the details for this item.' : 'Fill in the details for the new item.'}
+            {item
+              ? 'Update the details for this item.'
+              : 'Fill in the details for the new item.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -145,7 +153,11 @@ export function MenuItemFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                   <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
@@ -174,10 +186,16 @@ export function MenuItemFormDialog({
               )}
             />
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => handleDialogClose(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleDialogClose(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit">{item ? 'Save Changes' : 'Add Item'}</Button>
+              <Button type="submit">
+                {item ? 'Save Changes' : 'Add Item'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>
