@@ -59,7 +59,7 @@ function MenuItemCard({ item }: { item: MenuItemWithId }) {
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         <CardTitle className="text-lg font-headline mb-2">{item.name}</CardTitle>
-        <CardDescription>{item.description}</CardDescription>
+        <CardDescription>{item.description || ''}</CardDescription>
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center bg-muted/50">
         <p className="text-lg font-bold text-primary">{item.price.toFixed(2)}</p>

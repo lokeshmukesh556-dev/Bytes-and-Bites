@@ -56,21 +56,16 @@ service cloud.firestore {
     }
 
     /**
-     * @description Allows public read access to menu items.
+     * @description Allows public read access to menu items, and write access for authenticated users.
      * @path /menu_items/{menuItemId}
-     * @allow (get) Any user can read a menu item.
-     * @allow (list) Any user can list menu items.
-     * @deny (create) No user can create a menu item via the client.
-     * @deny (update) No user can update a menu item via the client.
-     * @deny (delete) No user can delete a menu item via the client.
-     * @principle Allows public read access with no write access.
+     * @allow (get, list) Any user can read menu items.
+     * @allow (create, update, delete) Authenticated users (admins) can manage menu items.
+     * @principle Allows public read and admin write access.
      */
     match /menu_items/{menuItemId} {
       allow get: if true;
       allow list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow write: if isSignedIn();
     }
 
     /**

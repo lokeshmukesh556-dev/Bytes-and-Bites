@@ -14,7 +14,7 @@ import {
   updateDoc,
   deleteDoc,
 } from 'firebase/firestore';
-import { useCollection, useFirestore, WithId } from '@/firebase';
+import { useCollection, useFirestore, WithId, useAuth } from '@/firebase';
 import { menuItems as initialMenuItems, type MenuItem } from '@/lib/data';
 import {
   addDocumentNonBlocking,
@@ -24,9 +24,14 @@ import {
 import { useMemoFirebase } from '@/firebase/provider';
 
 // Redefine MenuItem to use imageUrl directly
-export interface MenuItemData extends Omit<MenuItem, 'id' | 'image'> {
+export interface MenuItemData
+  extends Omit<MenuItem, 'id' | 'image' | 'description'> {
+  name: string;
+  price: number;
+  category: 'meal' | 'snack';
   imageUrl: string;
   imageHint: string;
+  description?: string;
 }
 
 export type MenuItemWithId = WithId<MenuItemData>;
@@ -45,6 +50,7 @@ const MenuContext = createContext<MenuContextType | undefined>(undefined);
 
 export function MenuProvider({ children }: { children: ReactNode }) {
   const firestore = useFirestore();
+  const auth = useAuth();
   const menuItemsCollection = useMemoFirebase(
     () => collection(firestore, 'menu_items'),
     [firestore]
@@ -56,7 +62,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
 
   // Seed initial data if the collection is empty
   useEffect(() => {
-    if (menuItems && menuItems.length === 0 && !isLoading) {
+    if (auth && menuItems && menuItems.length === 0 && !isLoading) {
       initialMenuItems.forEach((item) => {
         const { id, image, ...rest } = item;
         const newItemData: MenuItemData = {
@@ -64,10 +70,13 @@ export function MenuProvider({ children }: { children: ReactNode }) {
           imageUrl: image.imageUrl,
           imageHint: image.imageHint,
         };
-        addDocumentNonBlocking(collection(firestore, 'menu_items'), newItemData);
+        addDocumentNonBlocking(
+          collection(firestore, 'menu_items'),
+          newItemData
+        );
       });
     }
-  }, [menuItems, isLoading, firestore]);
+  }, [menuItems, isLoading, firestore, auth]);
 
   const addMenuItem = (item: MenuItemData) => {
     if (!firestore) return;
