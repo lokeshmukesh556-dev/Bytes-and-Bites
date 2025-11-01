@@ -62,7 +62,7 @@ function MenuItemCard({ item }: { item: MenuItemWithId }) {
         <CardDescription>{item.description || ''}</CardDescription>
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center bg-muted/50">
-        <p className="text-lg font-bold text-primary">{item.price.toFixed(2)}</p>
+        <p className="text-lg font-bold text-primary">${item.price.toFixed(2)}</p>
         <Button size="sm" onClick={handleAddToCart}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add to Cart
@@ -75,7 +75,7 @@ function MenuItemCard({ item }: { item: MenuItemWithId }) {
 function MenuSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {[...Array(3)].map((_, i) => (
+      {[...Array(6)].map((_, i) => (
         <Card key={i} className="flex flex-col overflow-hidden shadow-md">
           <Skeleton className="w-full h-48" />
           <CardContent className="p-4 flex-grow space-y-2">

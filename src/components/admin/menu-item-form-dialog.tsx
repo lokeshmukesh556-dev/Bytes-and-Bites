@@ -30,9 +30,11 @@ import {
 } from '../ui/select';
 import { type MenuItemWithId } from '@/context/MenuContext';
 import { useEffect } from 'react';
+import { Textarea } from '../ui/textarea';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters long.'),
+  description: z.string().optional(),
   price: z.coerce.number().positive('Price must be a positive number.'),
   category: z.enum(['meal', 'snack']),
   imageFile: z.any().optional(),
@@ -60,6 +62,7 @@ export function MenuItemFormDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
+      description: '',
       price: 0,
       category: 'meal',
     },
@@ -71,12 +74,14 @@ export function MenuItemFormDialog({
     if (item) {
       form.reset({
         name: item.name,
+        description: item.description || '',
         price: item.price,
         category: item.category,
       });
     } else {
       form.reset({
         name: '',
+        description: '',
         price: 0,
         category: 'meal',
         imageFile: undefined,
@@ -129,6 +134,22 @@ export function MenuItemFormDialog({
                   <FormLabel>Item Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Veggie Burger" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="A short description of the item."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

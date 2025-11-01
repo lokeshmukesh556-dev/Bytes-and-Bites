@@ -14,7 +14,7 @@ import {
   updateDoc,
   deleteDoc,
 } from 'firebase/firestore';
-import { useCollection, useFirestore, WithId, useAuth } from '@/firebase';
+import { useCollection, useFirestore, WithId, useUser } from '@/firebase';
 import { menuItems as initialMenuItems, type MenuItem } from '@/lib/data';
 import {
   addDocumentNonBlocking,
@@ -50,23 +50,29 @@ const MenuContext = createContext<MenuContextType | undefined>(undefined);
 
 export function MenuProvider({ children }: { children: ReactNode }) {
   const firestore = useFirestore();
-  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
   const menuItemsCollection = useMemoFirebase(
     () => collection(firestore, 'menu_items'),
     [firestore]
   );
 
-  const { data: menuItems, isLoading } = useCollection<MenuItemData>(
+  const { data: menuItems, isLoading: isMenuLoading } = useCollection<MenuItemData>(
     menuItemsCollection
   );
 
   // Seed initial data if the collection is empty
   useEffect(() => {
-    if (auth && menuItems && menuItems.length === 0 && !isLoading) {
+    // We need to wait for auth to be resolved and for the menu items to be loaded
+    if (isUserLoading || isMenuLoading) {
+      return;
+    }
+    
+    if (user && menuItems && menuItems.length === 0) {
       initialMenuItems.forEach((item) => {
         const { id, image, ...rest } = item;
         const newItemData: MenuItemData = {
           ...rest,
+          description: item.description,
           imageUrl: image.imageUrl,
           imageHint: image.imageHint,
         };
@@ -76,7 +82,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
         );
       });
     }
-  }, [menuItems, isLoading, firestore, auth]);
+  }, [user, menuItems, isMenuLoading, isUserLoading, firestore]);
 
   const addMenuItem = (item: MenuItemData) => {
     if (!firestore) return;
@@ -112,7 +118,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
         deleteMenuItem,
         getMeals,
         getSnacks,
-        isLoading,
+        isLoading: isMenuLoading || isUserLoading,
       }}
     >
       {children}
