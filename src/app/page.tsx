@@ -1,3 +1,6 @@
+'use client';
+
+import { AppHeader } from '@/components/shared/header';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,8 +18,43 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import Link from 'next/link';
+import { initiateAnonymousSignIn, useAuth, useUser } from '@/firebase';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (auth && !user && !isUserLoading) {
+      initiateAnonymousSignIn(auth);
+    }
+  }, [auth, user, isUserLoading]);
+
+  const handleCustomerLogin = () => {
+    // For now, we will just navigate.
+    // In a real app, you would handle email/password login here.
+    if (user) {
+      router.push('/menu');
+    }
+  };
+  
+  const handleAdminLogin = () => {
+    if (user) {
+      router.push('/admin/dashboard');
+    }
+  };
+
+  if (isUserLoading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <main className="flex items-center justify-center min-h-screen bg-background p-4">
       <div className="w-full max-w-md">
@@ -55,8 +93,8 @@ export default function LoginPage() {
                   <Label htmlFor="customer-password">Password</Label>
                   <Input id="customer-password" type="password" />
                 </div>
-                <Button asChild className="w-full bg-primary hover:bg-primary/90">
-                  <Link href="/menu">Login</Link>
+                <Button onClick={handleCustomerLogin} className="w-full bg-primary hover:bg-primary/90">
+                  Login
                 </Button>
               </CardContent>
             </Card>
@@ -82,8 +120,8 @@ export default function LoginPage() {
                   <Label htmlFor="admin-password">Password</Label>
                   <Input id="admin-password" type="password" />
                 </div>
-                <Button asChild className="w-full bg-primary hover:bg-primary/90">
-                  <Link href="/admin/dashboard">Login</Link>
+                <Button onClick={handleAdminLogin} className="w-full bg-primary hover:bg-primary/90">
+                  Login
                 </Button>
               </CardContent>
             </Card>
