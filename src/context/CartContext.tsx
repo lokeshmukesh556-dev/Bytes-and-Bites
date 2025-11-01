@@ -1,15 +1,22 @@
 'use client';
 
-import { menuItems, type MenuItem } from '@/lib/data';
 import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
+import { useMenu, type MenuItemWithId } from './MenuContext';
 
-export interface CartItem extends MenuItem {
+// The base item in the cart only needs to store what is unique to the cart.
+export interface CartItemBase {
+  id: string; // This will be the MenuItem's ID
+  quantity: number;
+}
+
+// The full cart item, merged with live data from MenuContext.
+export interface CartItem extends MenuItemWithId {
   quantity: number;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (item: MenuItem) => void;
+  addToCart: (itemId: string) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, change: number) => void;
   clearCart: () => void;
@@ -21,26 +28,46 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItemBases, setCartItemBases] = useState<CartItemBase[]>([]);
+  const { menuItems, isLoading: isMenuLoading } = useMenu();
 
-  const addToCart = (item: MenuItem) => {
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((i) => i.id === item.id);
+  const cartItems = useMemo((): CartItem[] => {
+    if (isMenuLoading) return [];
+
+    const menuItemsById = new Map(menuItems.map(item => [item.id, item]));
+
+    return cartItemBases.map(cartBase => {
+        const menuItem = menuItemsById.get(cartBase.id);
+        // If a menu item is deleted by an admin while it's in a cart, it will be filtered out here.
+        if (!menuItem) return null;
+
+        return {
+          ...menuItem,
+          quantity: cartBase.quantity,
+        };
+      })
+      .filter((item): item is CartItem => item !== null);
+  }, [cartItemBases, menuItems, isMenuLoading]);
+
+
+  const addToCart = (itemId: string) => {
+    setCartItemBases((prevItems) => {
+      const existingItem = prevItems.find((i) => i.id === itemId);
       if (existingItem) {
         return prevItems.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
+          i.id === itemId ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
-      return [...prevItems, { ...item, quantity: 1 }];
+      return [...prevItems, { id: itemId, quantity: 1 }];
     });
   };
 
   const removeFromCart = (itemId: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+    setCartItemBases((prevItems) => prevItems.filter((item) => item.id !== itemId));
   };
 
   const updateQuantity = (itemId: string, change: number) => {
-    setCartItems((prevItems) =>
+    setCartItemBases((prevItems) =>
       prevItems
         .map((item) => {
           if (item.id === itemId) {
@@ -49,12 +76,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
           return item;
         })
-        .filter((item): item is CartItem => item !== null)
+        .filter((item): item is CartItemBase => item !== null)
     );
   };
   
   const clearCart = () => {
-    setCartItems([]);
+    setCartItemBases([]);
   };
 
   const { subtotal, total, convenienceFee } = useMemo(() => {

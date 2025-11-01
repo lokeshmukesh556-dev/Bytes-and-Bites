@@ -27,18 +27,7 @@ function MenuItemCard({ item }: { item: MenuItemWithId }) {
   const { toast } = useToast();
 
   const handleAddToCart = () => {
-    // The cart context expects a slightly different structure, so we adapt it here.
-    const cartItem = {
-      ...item,
-      image: {
-        id: item.id,
-        imageUrl: item.imageUrl,
-        imageHint: item.imageHint,
-        description: item.name,
-      },
-      description: item.name, // Keep a top-level description for cart display if needed
-    };
-    addToCart(cartItem);
+    addToCart(item.id);
     toast({
       title: 'Added to cart',
       description: `${item.name} has been added to your cart.`,

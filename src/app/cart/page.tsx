@@ -31,12 +31,12 @@ export default function CartPage() {
               cartItems.map((item) => (
                 <Card key={item.id} className="flex items-center p-4">
                   <Image
-                    src={item.image.imageUrl}
+                    src={item.imageUrl}
                     alt={item.name}
                     width={100}
                     height={100}
                     className="rounded-md object-cover"
-                    data-ai-hint={item.image.imageHint}
+                    data-ai-hint={item.imageHint}
                   />
                   <div className="ml-4 flex-grow">
                     <p className="font-semibold">{item.name}</p>
