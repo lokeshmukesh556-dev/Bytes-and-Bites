@@ -44,25 +44,33 @@ export default function MenuManagementPage() {
     setIsDialogOpen(false);
   }
 
-  const handleSaveItem = (itemData: Omit<MenuItem, 'id' | 'image'>, id?: string) => {
+  const handleSaveItem = (itemData: Omit<MenuItem, 'id' | 'image' | 'description'> & { imageUrl?: string }, id?: string) => {
+    const { imageUrl, ...restData } = itemData;
+    
     if (id) {
       // Editing existing item
       setMenuItems((prev) =>
         prev.map((item) =>
-          item.id === id ? { ...item, ...itemData } : item
+          item.id === id ? { 
+            ...item, 
+            ...restData,
+            image: {
+              ...item.image,
+              imageUrl: imageUrl || item.image.imageUrl
+            }
+          } : item
         )
       );
     } else {
       // Adding new item
       const newMenuItem: MenuItem = {
-        ...itemData,
+        ...restData,
         id: `item-${Date.now()}`,
         description: '', // Add an empty description
-        // For simplicity, using a placeholder image.
-        // In a real app, you'd handle image uploads.
+        // For simplicity, using a placeholder image if no URL is provided.
         image: {
           id: `new-${Date.now()}`,
-          imageUrl: `https://picsum.photos/seed/${Date.now()}/600/400`,
+          imageUrl: imageUrl || `https://picsum.photos/seed/${Date.now()}/600/400`,
           imageHint: 'food placeholder',
           description: 'A new menu item',
         },
