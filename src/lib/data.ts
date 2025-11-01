@@ -63,6 +63,14 @@ export const menuItems: MenuItem[] = [
     category: 'snack',
     image: imageMap.get('snack-3')!,
   },
+  {
+    id: '7',
+    name: 'Bourbon Biscuit',
+    description: 'A pack of delicious chocolate cream biscuits.',
+    price: 20,
+    category: 'snack',
+    image: imageMap.get('snack-4')!,
+  },
 ];
 
 export const meals = menuItems.filter((item) => item.category === 'meal');

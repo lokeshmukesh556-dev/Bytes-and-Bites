@@ -35,6 +35,12 @@
       "description": "A fresh vegetable sandwich.",
       "imageUrl": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzYW5kd2ljaHxlbnwwfHx8fDE3NjE5NDc2NTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "sandwich"
+    },
+    {
+      "id": "snack-4",
+      "description": "A pack of bourbon biscuits.",
+      "imageUrl": "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjaG9jb2xhdGUlMjBiaXNjdWl0fGVufDB8fHx8MTc2MzA5NTQxNnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "chocolate biscuit"
     }
   ]
 }
