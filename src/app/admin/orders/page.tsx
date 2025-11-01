@@ -73,7 +73,7 @@ export default function AdminOrdersPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>{order.total.toFixed(2)}</TableCell>
-                <TableCell>{order.date.toLocaleTimeString()}</TableCell>
+                <TableCell>{order.date.toLocaleDateString()}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
