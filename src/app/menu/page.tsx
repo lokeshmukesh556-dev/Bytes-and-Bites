@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -37,6 +36,7 @@ function MenuItemCard({ item }: { item: MenuItemWithId }) {
         imageHint: item.imageHint,
         description: item.name,
       },
+      description: item.name, // Keep a top-level description for cart display if needed
     };
     addToCart(cartItem);
     toast({
@@ -59,7 +59,6 @@ function MenuItemCard({ item }: { item: MenuItemWithId }) {
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         <CardTitle className="text-lg font-headline mb-2">{item.name}</CardTitle>
-        <CardDescription>{item.description || ''}</CardDescription>
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center bg-muted/50">
         <p className="text-lg font-bold text-primary">${item.price.toFixed(2)}</p>
