@@ -16,11 +16,12 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { meals, snacks, type MenuItem } from '@/lib/data';
+import { type MenuItem } from '@/lib/data';
 import { PlusCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import { useToast } from '@/hooks/use-toast';
+import { useMenu } from '@/context/MenuContext';
 
 function MenuItemCard({ item }: { item: MenuItem }) {
   const { addToCart } = useCart();
@@ -62,6 +63,10 @@ function MenuItemCard({ item }: { item: MenuItem }) {
 }
 
 export default function MenuPage() {
+  const { getMeals, getSnacks } = useMenu();
+  const meals = getMeals();
+  const snacks = getSnacks();
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />

@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { menuItems as initialMenuItems, type MenuItem } from '@/lib/data';
+import { type MenuItem } from '@/lib/data';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import {
   DropdownMenu,
@@ -28,9 +28,10 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { MenuItemFormDialog } from '@/components/admin/menu-item-form-dialog';
+import { useMenu } from '@/context/MenuContext';
 
 export default function MenuManagementPage() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem } = useMenu();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
 
@@ -54,18 +55,18 @@ export default function MenuManagementPage() {
 
     if (id) {
       // Editing existing item
-      setMenuItems((prev) =>
-        prev.map((item) =>
-          item.id === id ? { 
-            ...item, 
-            ...restData,
-            image: {
-              ...item.image,
-              imageUrl: imageUrl || item.image.imageUrl
-            }
-          } : item
-        )
-      );
+      const existingItem = menuItems.find(item => item.id === id);
+      if (!existingItem) return;
+
+      const updatedItem: MenuItem = {
+        ...existingItem,
+        ...restData,
+        image: {
+          ...existingItem.image,
+          imageUrl: imageUrl || existingItem.image.imageUrl
+        }
+      }
+      updateMenuItem(updatedItem);
     } else {
       // Adding new item
       const newMenuItem: MenuItem = {
@@ -80,12 +81,12 @@ export default function MenuManagementPage() {
           description: 'A new menu item',
         },
       };
-      setMenuItems((prev) => [...prev, newMenuItem]);
+      addMenuItem(newMenuItem);
     }
   };
 
   const handleDeleteItem = (itemId: string) => {
-    setMenuItems((prev) => prev.filter((item) => item.id !== itemId));
+    deleteMenuItem(itemId);
   };
 
 

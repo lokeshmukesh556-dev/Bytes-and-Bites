@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/CartContext';
+import { MenuProvider } from '@/context/MenuContext';
 
 export const metadata: Metadata = {
   title: 'Violet Bites',
@@ -24,9 +25,11 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <CartProvider>
-          {children}
-        </CartProvider>
+        <MenuProvider>
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </MenuProvider>
         <Toaster />
       </body>
     </html>
