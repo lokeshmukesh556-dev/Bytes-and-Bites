@@ -74,13 +74,12 @@ export default function MenuManagementPage() {
       imageHint = 'food placeholder';
     }
 
-
     const finalItemData: MenuItemData = {
       ...restData,
       imageUrl,
       imageHint,
     };
-    
+
     if (id) {
       updateMenuItem(id, finalItemData);
     } else {
