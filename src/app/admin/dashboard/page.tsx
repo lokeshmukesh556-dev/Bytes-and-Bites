@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 const stats = [
   {
     title: "Today's Revenue",
-    value: '1,890.50',
+    value: '1890.50',
     icon: DollarSign,
     change: '+5.2% from yesterday',
   },
@@ -98,7 +98,7 @@ export default function AdminDashboardPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Item</TableHead>
-                        <TableHead className="text-right">Sales</TableHead>
+                        <TableHead className="text-right">Number of Sales</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -116,7 +116,7 @@ export default function AdminDashboardPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Item</TableHead>
-                        <TableHead className="text-right">Sales</TableHead>
+                        <TableHead className="text-right">Number of Sales</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
