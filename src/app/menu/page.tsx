@@ -1,3 +1,5 @@
+'use client';
+
 import { AppHeader } from '@/components/shared/header';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,8 +19,21 @@ import {
 import { meals, snacks, type MenuItem } from '@/lib/data';
 import { PlusCircle } from 'lucide-react';
 import Image from 'next/image';
+import { useCart } from '@/context/CartContext';
+import { useToast } from '@/hooks/use-toast';
 
 function MenuItemCard({ item }: { item: MenuItem }) {
+  const { addToCart } = useCart();
+  const { toast } = useToast();
+
+  const handleAddToCart = () => {
+    addToCart(item);
+    toast({
+      title: 'Added to cart',
+      description: `${item.name} has been added to your cart.`,
+    });
+  };
+
   return (
     <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
       <CardHeader className="p-0">
@@ -37,7 +52,7 @@ function MenuItemCard({ item }: { item: MenuItem }) {
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center bg-muted/50">
         <p className="text-lg font-bold text-primary">{item.price.toFixed(2)}</p>
-        <Button size="sm">
+        <Button size="sm" onClick={handleAddToCart}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add to Cart
         </Button>

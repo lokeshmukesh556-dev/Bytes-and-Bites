@@ -12,52 +12,13 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { menuItems, type MenuItem } from '@/lib/data';
 import { MinusCircle, PlusCircle, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
-
-interface CartItem extends MenuItem {
-  quantity: number;
-}
-
-// Mock initial cart data
-const initialCartItems: CartItem[] = [
-  { ...menuItems[0], quantity: 1 },
-  { ...menuItems[4], quantity: 2 },
-];
+import { useCart } from '@/context/CartContext';
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
-
-  const handleQuantityChange = (itemId: string, change: number) => {
-    setCartItems((prevItems) =>
-      prevItems
-        .map((item) => {
-          if (item.id === itemId) {
-            const newQuantity = item.quantity + change;
-            return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
-          }
-          return item;
-        })
-        .filter((item): item is CartItem => item !== null)
-    );
-  };
-
-  const handleRemoveItem = (itemId: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
-  };
-
-  const { subtotal, total, convenienceFee } = useMemo(() => {
-    const subtotal = cartItems.reduce(
-      (acc, item) => acc + item.price * item.quantity,
-      0
-    );
-    const convenienceFee = subtotal > 0 ? 1.0 : 0;
-    const total = subtotal + convenienceFee;
-    return { subtotal, total, convenienceFee };
-  }, [cartItems]);
+  const { cartItems, updateQuantity, removeFromCart, subtotal, convenienceFee, total } = useCart();
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,7 +49,7 @@ export default function CartPage() {
                       variant="outline"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => handleQuantityChange(item.id, -1)}
+                      onClick={() => updateQuantity(item.id, -1)}
                     >
                       <MinusCircle className="h-4 w-4" />
                     </Button>
@@ -101,7 +62,7 @@ export default function CartPage() {
                       variant="outline"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => handleQuantityChange(item.id, 1)}
+                      onClick={() => updateQuantity(item.id, 1)}
                     >
                       <PlusCircle className="h-4 w-4" />
                     </Button>
@@ -110,7 +71,7 @@ export default function CartPage() {
                     variant="ghost"
                     size="icon"
                     className="ml-4 text-destructive hover:bg-destructive/10"
-                    onClick={() => handleRemoveItem(item.id)}
+                    onClick={() => removeFromCart(item.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
