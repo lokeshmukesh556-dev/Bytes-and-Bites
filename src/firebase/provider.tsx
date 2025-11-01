@@ -74,8 +74,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       return;
     }
 
-    // This immediately sets the current user if available from cache, reducing flicker
-    setUserAuthState({ user: auth.currentUser, isUserLoading: !auth.currentUser, userError: null });
+    setUserAuthState({ user: null, isUserLoading: true, userError: null }); // Reset on auth instance change
 
     const unsubscribe = onAuthStateChanged(
       auth,
