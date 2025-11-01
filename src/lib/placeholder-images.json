@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "meal-1",
+      "description": "A delicious plate of biryani.",
+      "imageUrl": "https://images.unsplash.com/photo-1752673508949-f4aeeaef75f0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiaXJ5YW5pJTIwcmljZXxlbnwwfHx8fDE3NjE5ODk0MTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "biryani rice"
+    },
+    {
+      "id": "meal-2",
+      "description": "A classic south indian thali.",
+      "imageUrl": "https://images.unsplash.com/photo-1742281257707-0c7f7e5ca9c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxpbmRpYW4lMjB0aGFsaXxlbnwwfHx8fDE3NjE5NzQwNjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "indian thali"
+    },
+    {
+      "id": "meal-3",
+      "description": "A bowl of noodles.",
+      "imageUrl": "https://images.unsplash.com/photo-1698327097684-5726266fc2d4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxub29kbGVzJTIwYm93bHxlbnwwfHx8fDE3NjE5ODk0MTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "noodles bowl"
+    },
+    {
+      "id": "snack-1",
+      "description": "Crispy samosas.",
+      "imageUrl": "https://images.unsplash.com/photo-1586766846119-d98e602fee29?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzYW1vc2ElMjBwYXN0cnl8ZW58MHx8fHwxNzYxODg1NzQ5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "samosa pastry"
+    },
+    {
+      "id": "snack-2",
+      "description": "A cup of coffee.",
+      "imageUrl": "https://images.unsplash.com/photo-1506372023823-741c83b836fe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxjb2ZmZWUlMjBjdXB8ZW58MHx8fHwxNzYxOTg5NDE4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coffee cup"
+    },
+    {
+      "id": "snack-3",
+      "description": "A fresh vegetable sandwich.",
+      "imageUrl": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzYW5kd2ljaHxlbnwwfHx8fDE3NjE5NDc2NTd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sandwich"
+    }
+  ]
 }
