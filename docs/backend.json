@@ -1,0 +1,330 @@
+{
+  "entities": {
+    "MenuItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MenuItem",
+      "type": "object",
+      "description": "Represents a menu item available for ordering.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the menu item."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the menu item."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the menu item."
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the menu item."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the image representing the menu item.",
+          "format": "uri"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the menu item (e.g., 'Meals', 'Snacks')."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "price",
+        "imageUrl",
+        "category"
+      ]
+    },
+    "CartItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CartItem",
+      "type": "object",
+      "description": "Represents an item added to the user's shopping cart.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the cart item."
+        },
+        "menuItemId": {
+          "type": "string",
+          "description": "Reference to MenuItem. (Relationship: MenuItem 1:N CartItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the menu item in the cart."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N CartItem)"
+        }
+      },
+      "required": [
+        "id",
+        "menuItemId",
+        "quantity",
+        "userId"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents a customer order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Order)"
+        },
+        "orderDate": {
+          "type": "string",
+          "description": "Date and time when the order was placed.",
+          "format": "date-time"
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Total amount of the order."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the order (e.g., 'Pending', 'Processing', 'Completed')."
+        },
+        "orderItemIds": {
+          "type": "array",
+          "description": "References to OrderItems. (Relationship: Order 1:N OrderItem)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "orderDate",
+        "totalAmount",
+        "status",
+        "orderItemIds"
+      ]
+    },
+    "OrderItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OrderItem",
+      "type": "object",
+      "description": "Represents a specific item within an order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order item."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to Order. (Relationship: Order 1:N OrderItem)"
+        },
+        "menuItemId": {
+          "type": "string",
+          "description": "Reference to MenuItem. (Relationship: MenuItem 1:N OrderItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the menu item in this order."
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the menu item at the time of the order."
+        }
+      },
+      "required": [
+        "id",
+        "orderId",
+        "menuItemId",
+        "quantity",
+        "price"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Violet Bites application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "username": {
+          "type": "string",
+          "description": "Username of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "Role of the user (e.g., 'user', 'admin')."
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email",
+        "role"
+      ]
+    },
+    "Canteen": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Canteen",
+      "type": "object",
+      "description": "Represents the canteen associated with the Violet Bites application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the canteen."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the canteen."
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "Reference to User (the canteen owner). (Relationship: User 1:1 Canteen)"
+        },
+        "bankAccountId": {
+          "type": "string",
+          "description": "Identifier for the bank account linked to the canteen."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "ownerId",
+        "bankAccountId"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/canteens/{canteenId}",
+        "definition": {
+          "entityName": "Canteen",
+          "schema": {
+            "$ref": "#/backend/entities/Canteen"
+          },
+          "description": "Stores canteen information. The 'ownerId' field specifies the user who owns the canteen.",
+          "params": [
+            {
+              "name": "canteenId",
+              "description": "The unique identifier for the canteen."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/menu_items/{menuItemId}",
+        "definition": {
+          "entityName": "MenuItem",
+          "schema": {
+            "$ref": "#/backend/entities/MenuItem"
+          },
+          "description": "Stores the menu items available in the application. Accessible to all users.",
+          "params": [
+            {
+              "name": "menuItemId",
+              "description": "The unique identifier for the menu item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/cart_items/{cartItemId}",
+        "definition": {
+          "entityName": "CartItem",
+          "schema": {
+            "$ref": "#/backend/entities/CartItem"
+          },
+          "description": "Stores the cart items for each user. Path-based ownership ensures that only the user can access their own cart.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "cartItemId",
+              "description": "The unique identifier for the cart item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores the order history for each user. Path-based ownership ensures that only the user can access their own order history.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/order_items/{orderItemId}",
+        "definition": {
+          "entityName": "OrderItem",
+          "schema": {
+            "$ref": "#/backend/entities/OrderItem"
+          },
+          "description": "Stores all order items. No user-specific data here, so list operations are secure.",
+          "params": [
+            {
+              "name": "orderItemId",
+              "description": "The unique identifier for the order item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure prioritizes authorization independence and simplifies security rules.  Path-based ownership is used for user-specific data, and a segregation strategy is used to separate data with different security requirements.  The key is to avoid `get()` calls in security rules to ensure atomic operations and ease debugging.\n\n*   `/canteens/{canteenId}`: Canteen details are stored here. The ownerId field indicates the canteen's owner. \n*   `/menu_items/{menuItemId}`:  Stores the menu items available. No user-specific data here, so list operations are secure.  Canteen ID is not included because all menu items are visible.\n*   `/users/{userId}/cart_items/{cartItemId}`: Stores the cart items of each user. Path-based ownership ensures that only the user can access their own cart. Includes the `menuItemId` to reference the item.\n*   `/users/{userId}/orders/{orderId}`: Stores the order history for each user. Path-based ownership is utilized. The `orderItemIds` contain the references to specific items in the order.\n*   `/order_items/{orderItemId}`: Stores all order items, no user-specific data so all list operations are secure.\n\nThis design avoids hierarchical authorization dependencies, ensuring that security rules can be written without `get()` calls.  It enables secure `list` operations by segregating data based on access control requirements. It supports invariants by ensuring ownership is explicitly defined in the document or path."
+  }
+}
