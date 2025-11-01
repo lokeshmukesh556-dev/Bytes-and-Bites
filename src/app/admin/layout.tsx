@@ -70,7 +70,7 @@ export default function AdminLayout({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="#">
+                <Link href="/admin/settings">
                   <Settings />
                   Settings
                 </Link>
