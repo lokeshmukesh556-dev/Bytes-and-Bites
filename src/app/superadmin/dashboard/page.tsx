@@ -9,7 +9,7 @@ import { Building, DollarSign, ShoppingBag, Users } from 'lucide-react';
 const stats = [
   {
     title: 'Platform Revenue',
-    value: '₹2,54,320',
+    value: '2,54,320',
     icon: DollarSign,
     description: 'All-time revenue from convenience fees',
   },

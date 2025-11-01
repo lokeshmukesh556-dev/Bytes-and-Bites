@@ -41,7 +41,7 @@ export function SalesChart() {
               fontSize={12}
             />
             <YAxis
-              tickFormatter={(value) => `₹${Number(value) / 1000}k`}
+              tickFormatter={(value) => `${Number(value) / 1000}k`}
               tickLine={false}
               tickMargin={10}
               axisLine={false}

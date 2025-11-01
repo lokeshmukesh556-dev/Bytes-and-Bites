@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 const stats = [
   {
     title: "Today's Revenue",
-    value: '₹1,890.50',
+    value: '1,890.50',
     icon: DollarSign,
     change: '+5.2% from yesterday',
   },
