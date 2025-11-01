@@ -34,8 +34,8 @@ export default function SettingsPage() {
         <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
                 <Mail className="size-5 text-muted-foreground" />
-                <a href="mailto:support@violetbites.com" className="hover:underline">
-                    support@violetbites.com
+                <a href="mailto:vantawork17@gmail.com" className="hover:underline">
+                    vantawork17@gmail.com
                 </a>
             </div>
             <div className="flex items-start gap-4">
