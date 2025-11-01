@@ -1,3 +1,5 @@
+'use client';
+
 import { AppHeader } from '@/components/shared/header';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,24 +12,53 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { menuItems } from '@/lib/data';
+import { menuItems, type MenuItem } from '@/lib/data';
 import { MinusCircle, PlusCircle, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState, useMemo } from 'react';
 
-// Mock cart data
-const cartItems = [
+interface CartItem extends MenuItem {
+  quantity: number;
+}
+
+// Mock initial cart data
+const initialCartItems: CartItem[] = [
   { ...menuItems[0], quantity: 1 },
   { ...menuItems[4], quantity: 2 },
 ];
-const subtotal = cartItems.reduce(
-  (acc, item) => acc + item.price * item.quantity,
-  0
-);
-const convenienceFee = 1.0;
-const total = subtotal + convenienceFee;
 
 export default function CartPage() {
+  const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
+
+  const handleQuantityChange = (itemId: string, change: number) => {
+    setCartItems((prevItems) =>
+      prevItems
+        .map((item) => {
+          if (item.id === itemId) {
+            const newQuantity = item.quantity + change;
+            return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
+          }
+          return item;
+        })
+        .filter((item): item is CartItem => item !== null)
+    );
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+  };
+
+  const { subtotal, total, convenienceFee } = useMemo(() => {
+    const subtotal = cartItems.reduce(
+      (acc, item) => acc + item.price * item.quantity,
+      0
+    );
+    const convenienceFee = subtotal > 0 ? 1.0 : 0;
+    const total = subtotal + convenienceFee;
+    return { subtotal, total, convenienceFee };
+  }, [cartItems]);
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -35,44 +66,67 @@ export default function CartPage() {
         <h1 className="text-3xl font-bold mb-8 font-headline">Your Cart</h1>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
-            {cartItems.map((item) => (
-              <Card key={item.id} className="flex items-center p-4">
-                <Image
-                  src={item.image.imageUrl}
-                  alt={item.name}
-                  width={100}
-                  height={100}
-                  className="rounded-md object-cover"
-                  data-ai-hint={item.image.imageHint}
-                />
-                <div className="ml-4 flex-grow">
-                  <p className="font-semibold">{item.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    ₹{item.price.toFixed(2)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" className="h-8 w-8">
-                    <MinusCircle className="h-4 w-4" />
-                  </Button>
-                  <Input
-                    readOnly
-                    value={item.quantity}
-                    className="h-8 w-12 text-center"
+            {cartItems.length > 0 ? (
+              cartItems.map((item) => (
+                <Card key={item.id} className="flex items-center p-4">
+                  <Image
+                    src={item.image.imageUrl}
+                    alt={item.name}
+                    width={100}
+                    height={100}
+                    className="rounded-md object-cover"
+                    data-ai-hint={item.image.imageHint}
                   />
-                  <Button variant="outline" size="icon" className="h-8 w-8">
-                    <PlusCircle className="h-4 w-4" />
+                  <div className="ml-4 flex-grow">
+                    <p className="font-semibold">{item.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      ₹{item.price.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleQuantityChange(item.id, -1)}
+                    >
+                      <MinusCircle className="h-4 w-4" />
+                    </Button>
+                    <Input
+                      readOnly
+                      value={item.quantity}
+                      className="h-8 w-12 text-center"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleQuantityChange(item.id, 1)}
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="ml-4 text-destructive hover:bg-destructive/10"
+                    onClick={() => handleRemoveItem(item.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
                   </Button>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="ml-4 text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4" />
+                </Card>
+              ))
+            ) : (
+              <Card className="flex flex-col items-center justify-center p-12 text-center">
+                <CardTitle>Your cart is empty</CardTitle>
+                <CardDescription className="mt-2">
+                  Looks like you haven't added anything to your cart yet.
+                </CardDescription>
+                <Button asChild className="mt-6">
+                  <Link href="/menu">Browse Menu</Link>
                 </Button>
               </Card>
-            ))}
+            )}
           </div>
 
           <div className="lg:col-span-1">
@@ -99,7 +153,7 @@ export default function CartPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button asChild className="w-full">
+                <Button asChild className="w-full" disabled={cartItems.length === 0}>
                   <Link href="/payment">Proceed to Payment</Link>
                 </Button>
               </CardFooter>
