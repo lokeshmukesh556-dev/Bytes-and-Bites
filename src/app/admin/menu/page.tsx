@@ -44,9 +44,14 @@ export default function MenuManagementPage() {
     setIsDialogOpen(false);
   }
 
-  const handleSaveItem = (itemData: Omit<MenuItem, 'id' | 'image' | 'description'> & { imageUrl?: string }, id?: string) => {
-    const { imageUrl, ...restData } = itemData;
+  const handleSaveItem = (itemData: Omit<MenuItem, 'id' | 'image' | 'description'> & { imageFile?: File }, id?: string) => {
+    const { imageFile, ...restData } = itemData;
     
+    let imageUrl = '';
+    if (imageFile) {
+        imageUrl = URL.createObjectURL(imageFile);
+    }
+
     if (id) {
       // Editing existing item
       setMenuItems((prev) =>

@@ -35,7 +35,7 @@ const formSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters long.'),
   price: z.coerce.number().positive('Price must be a positive number.'),
   category: z.enum(['meal', 'snack']),
-  imageUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
+  imageFile: z.instanceof(FileList).optional(),
 });
 
 type MenuItemFormValues = z.infer<typeof formSchema>;
@@ -43,7 +43,7 @@ type MenuItemFormValues = z.infer<typeof formSchema>;
 interface MenuItemFormDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSave: (item: Omit<MenuItem, 'id' | 'image' | 'description'> & { imageUrl?: string }, id?: string) => void;
+  onSave: (item: Omit<MenuItem, 'id' | 'image' | 'description'> & { imageFile?: File }, id?: string) => void;
   item: MenuItem | null;
 }
 
@@ -59,9 +59,10 @@ export function MenuItemFormDialog({
       name: '',
       price: 0,
       category: 'meal',
-      imageUrl: '',
     },
   });
+  
+  const imageFileRef = form.register("imageFile");
 
   useEffect(() => {
     if (item) {
@@ -69,21 +70,27 @@ export function MenuItemFormDialog({
         name: item.name,
         price: item.price,
         category: item.category,
-        imageUrl: item.image.imageUrl,
       });
     } else {
       form.reset({
         name: '',
         price: 0,
         category: 'meal',
-        imageUrl: '',
       });
     }
   }, [item, form]);
 
 
   const onSubmit = (values: MenuItemFormValues) => {
-    onSave(values, item?.id);
+    const dataToSave: Omit<MenuItem, 'id' | 'image' | 'description'> & { imageFile?: File } = {
+        ...values,
+    }
+
+    if(values.imageFile && values.imageFile.length > 0) {
+        dataToSave.imageFile = values.imageFile[0];
+    }
+    
+    onSave(dataToSave, item?.id);
     onOpenChange(false);
   };
   
@@ -154,12 +161,12 @@ export function MenuItemFormDialog({
             />
             <FormField
               control={form.control}
-              name="imageUrl"
+              name="imageFile"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image URL</FormLabel>
+                  <FormLabel>Image</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/image.jpg" {...field} />
+                    <Input type="file" accept="image/*" {...imageFileRef} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
