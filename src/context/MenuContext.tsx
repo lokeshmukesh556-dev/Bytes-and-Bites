@@ -57,14 +57,14 @@ export function MenuProvider({ children }: { children: ReactNode }) {
   // Seed initial data if the collection is empty
   useEffect(() => {
     if (menuItems && menuItems.length === 0 && !isLoading) {
-      initialMenuItems.forEach(async (item) => {
+      initialMenuItems.forEach((item) => {
         const { id, image, ...rest } = item;
         const newItemData: MenuItemData = {
           ...rest,
           imageUrl: image.imageUrl,
           imageHint: image.imageHint,
         };
-        await addDoc(collection(firestore, 'menu_items'), newItemData);
+        addDocumentNonBlocking(collection(firestore, 'menu_items'), newItemData);
       });
     }
   }, [menuItems, isLoading, firestore]);
