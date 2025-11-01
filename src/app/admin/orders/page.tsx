@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -23,6 +25,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import { orders, type Order } from '@/lib/data';
+import { useState } from 'react';
+import { OrderDetailsDialog } from '@/components/admin/order-details-dialog';
 
 function getBadgeVariant(
   status: Order['status']
@@ -42,59 +46,84 @@ function getBadgeVariant(
 }
 
 export default function AdminOrdersPage() {
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDialogOpen(true);
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Incoming Orders</CardTitle>
-        <CardDescription>Manage and track all customer orders.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-medium">{order.id}</TableCell>
-                <TableCell>{order.customerName}</TableCell>
-                <TableCell>
-                  <Badge variant={getBadgeVariant(order.status)}>
-                    {order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>{order.total.toFixed(2)}</TableCell>
-                <TableCell>{order.date.toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Mark as Preparing</DropdownMenuItem>
-                      <DropdownMenuItem>Mark as Ready</DropdownMenuItem>
-                      <DropdownMenuItem>Mark as Completed</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Incoming Orders</CardTitle>
+          <CardDescription>
+            Manage and track all customer orders.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order ID</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+            </TableHeader>
+            <TableBody>
+              {orders.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium">{order.id}</TableCell>
+                  <TableCell>{order.customerName}</TableCell>
+                  <TableCell>
+                    <Badge variant={getBadgeVariant(order.status)}>
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{order.total.toFixed(2)}</TableCell>
+                  <TableCell>{order.date.toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-haspopup="true"
+                          size="icon"
+                          variant="ghost"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewDetails(order)}>
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>Mark as Preparing</DropdownMenuItem>
+                        <DropdownMenuItem>Mark as Ready</DropdownMenuItem>
+                        <DropdownMenuItem>Mark as Completed</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      {selectedOrder && (
+        <OrderDetailsDialog
+          order={selectedOrder}
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+        />
+      )}
+    </>
   );
 }
