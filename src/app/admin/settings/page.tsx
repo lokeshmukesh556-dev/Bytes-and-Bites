@@ -41,8 +41,8 @@ export default function SettingsPage() {
             <div className="flex items-start gap-4">
                 <Phone className="size-5 text-muted-foreground mt-1" />
                 <div className="flex flex-col">
-                  <span>9940918442</span>
-                  <span>6383350445</span>
+                  <span>+91 9940918442</span>
+                  <span>+91 6383350445</span>
                 </div>
             </div>
             <div className="flex items-start gap-4">
