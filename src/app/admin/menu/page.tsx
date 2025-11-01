@@ -33,10 +33,11 @@ export default function MenuManagementPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleAddItem = (newItem: Omit<MenuItem, 'id' | 'image'>) => {
+  const handleAddItem = (newItem: Omit<MenuItem, 'id' | 'image' | 'description'>) => {
     const newMenuItem: MenuItem = {
       ...newItem,
       id: `item-${Date.now()}`,
+      description: '', // Add an empty description
       // For simplicity, using a placeholder image.
       // In a real app, you'd handle image uploads.
       image: {

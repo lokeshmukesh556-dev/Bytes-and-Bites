@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Textarea } from '../ui/textarea';
 import {
   Select,
   SelectContent,
@@ -33,7 +32,6 @@ import type { MenuItem } from '@/lib/data';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters long.'),
-  description: z.string().min(10, 'Description must be at least 10 characters long.'),
   price: z.coerce.number().positive('Price must be a positive number.'),
   category: z.enum(['meal', 'snack']),
 });
@@ -43,7 +41,7 @@ type AddMenuItemFormValues = z.infer<typeof formSchema>;
 interface AddMenuItemDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onAddItem: (item: Omit<MenuItem, 'id' | 'image'>) => void;
+  onAddItem: (item: Omit<MenuItem, 'id' | 'image' | 'description'>) => void;
 }
 
 export function AddMenuItemDialog({
@@ -55,7 +53,6 @@ export function AddMenuItemDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      description: '',
       price: 0,
       category: 'meal',
     },
@@ -86,22 +83,6 @@ export function AddMenuItemDialog({
                   <FormLabel>Item Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Veggie Burger" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="A short description of the item."
-                      {...field}
-                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
