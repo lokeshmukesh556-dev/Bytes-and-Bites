@@ -48,8 +48,7 @@ export default function SettingsPage() {
             <div className="flex items-start gap-4">
                 <MapPin className="size-5 text-muted-foreground mt-1" />
                 <div>
-                    <p>Violet Bites HQ</p>
-                    <p className="text-muted-foreground">123 Tech Avenue, Silicon Valley, CA 94043</p>
+                    <p>JJCET</p>
                 </div>
             </div>
         </CardContent>
