@@ -46,6 +46,7 @@ function getBadgeVariant(
 }
 
 export default function AdminOrdersPage() {
+  const [currentOrders, setCurrentOrders] = useState<Order[]>(orders);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -53,6 +54,12 @@ export default function AdminOrdersPage() {
     setSelectedOrder(order);
     setIsDialogOpen(true);
   };
+  
+  const handleUpdateStatus = (orderId: string, status: Order['status']) => {
+    setCurrentOrders(prevOrders => prevOrders.map(order => 
+      order.id === orderId ? {...order, status: status} : order
+    ))
+  }
 
   return (
     <>
@@ -78,7 +85,7 @@ export default function AdminOrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
+              {currentOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">{order.id}</TableCell>
                   <TableCell>{order.customerName}</TableCell>
@@ -105,9 +112,9 @@ export default function AdminOrdersPage() {
                         <DropdownMenuItem onClick={() => handleViewDetails(order)}>
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Mark as Preparing</DropdownMenuItem>
-                        <DropdownMenuItem>Mark as Ready</DropdownMenuItem>
-                        <DropdownMenuItem>Mark as Completed</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, 'Preparing')}>Mark as Preparing</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, 'Ready')}>Mark as Ready</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, 'Completed')}>Mark as Completed</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
