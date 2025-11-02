@@ -70,7 +70,7 @@ export default function LoginPage() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="customer">Customer</TabsTrigger>
             <TabsTrigger value="admin">Canteen</TabsTrigger>
-            <TabsTrigger value="superadmin">Service</TabsTrigger>
+            <TabsTrigger value="superadmin">food court</TabsTrigger>
           </TabsList>
           <TabsContent value="customer">
             <Card>
@@ -129,7 +129,7 @@ export default function LoginPage() {
           <TabsContent value="superadmin">
             <Card>
               <CardHeader>
-                <CardTitle>Service Admin Login</CardTitle>
+                <CardTitle>Food Court Admin Login</CardTitle>
                 <CardDescription>
                   Access the application's global data.
                 </CardDescription>
