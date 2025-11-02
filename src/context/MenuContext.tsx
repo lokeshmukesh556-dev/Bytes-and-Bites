@@ -51,7 +51,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const menuItemsCollection = useMemoFirebase(
-    () => collection(firestore, 'menu_items'),
+    () => (firestore ? collection(firestore, 'menu_items') : null),
     [firestore]
   );
 
@@ -61,7 +61,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
   // Seed initial data if the collection is empty
   useEffect(() => {
     // We need to wait for auth to be resolved and for the menu items to be loaded
-    if (isUserLoading || isMenuLoading) {
+    if (isUserLoading || isMenuLoading || !firestore) {
       return;
     }
 
