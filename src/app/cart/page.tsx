@@ -16,9 +16,75 @@ import { MinusCircle, PlusCircle, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
+import { useFirestore, useUser } from '@/firebase';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { collection } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function CartPage() {
-  const { cartItems, updateQuantity, removeFromCart, subtotal, convenienceFee, total } = useCart();
+  const {
+    cartItems,
+    updateQuantity,
+    removeFromCart,
+    subtotal,
+    convenienceFee,
+    total,
+  } = useCart();
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const router = useRouter();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleProceedToPayment = async () => {
+    if (!user || !firestore || cartItems.length === 0) return;
+
+    setIsProcessing(true);
+
+    try {
+      // 1. Create the main Order document
+      const newOrderRef = await addDocumentNonBlocking(
+        collection(firestore, `users/${user.uid}/orders`),
+        {
+          userId: user.uid,
+          orderDate: new Date().toISOString(),
+          totalAmount: total,
+          status: 'Pending',
+          convenienceFee: convenienceFee,
+          orderItemIds: [], // We'll update this after creating order items if needed, though often not required with subcollections
+        }
+      );
+      
+      if (!newOrderRef) {
+          throw new Error("Failed to create order document.");
+      }
+
+      // 2. Create OrderItem documents in the subcollection
+      const orderItemsPromises = cartItems.map((item) =>
+        addDocumentNonBlocking(
+          collection(firestore, `users/${user.uid}/orders/${newOrderRef.id}/order_items`),
+          {
+            orderId: newOrderRef.id,
+            menuItemId: item.id,
+            quantity: item.quantity,
+            price: item.price,
+          }
+        )
+      );
+
+      await Promise.all(orderItemsPromises);
+
+      // 3. Navigate to confirmation page
+      router.push(`/order-confirmation/${newOrderRef.id}`);
+      
+      // Cart will be cleared on the confirmation page
+      
+    } catch (error) {
+      console.error('Error creating order:', error);
+      // You could show a toast message to the user here
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -114,8 +180,12 @@ export default function CartPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button asChild className="w-full" disabled={cartItems.length === 0}>
-                  <Link href="/payment">Proceed to Payment</Link>
+                <Button
+                  onClick={handleProceedToPayment}
+                  className="w-full"
+                  disabled={cartItems.length === 0 || isProcessing}
+                >
+                  {isProcessing ? 'Processing...' : 'Proceed to Payment'}
                 </Button>
               </CardFooter>
             </Card>

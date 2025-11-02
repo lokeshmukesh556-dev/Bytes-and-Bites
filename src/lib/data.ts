@@ -76,41 +76,6 @@ export const menuItems: MenuItem[] = [
 export const meals = menuItems.filter((item) => item.category === 'meal');
 export const snacks = menuItems.filter((item) => item.category === 'snack');
 
-export interface Order {
-  id: string;
-  customerName: string;
-  items: { menuItem: MenuItem, quantity: number }[];
-  total: number;
-  status: 'Pending' | 'Preparing' | 'Ready' | 'Completed';
-  date: Date;
-}
-
-export const orders: Order[] = [
-    {
-        id: 'ORD001',
-        customerName: 'Ankit Sharma',
-        items: [{ menuItem: menuItems[0], quantity: 1 }, { menuItem: menuItems[4], quantity: 2 }],
-        total: 201, // 150 + 25*2 + 1
-        status: 'Ready',
-        date: new Date('2024-07-20T12:30:00')
-    },
-    {
-        id: 'ORD002',
-        customerName: 'Priya Singh',
-        items: [{ menuItem: menuItems[1], quantity: 1 }],
-        total: 121, // 120 + 1
-        status: 'Preparing',
-        date: new Date('2024-07-20T12:35:00')
-    },
-    {
-        id: 'ORD003',
-        customerName: 'Rohan Verma',
-        items: [{ menuItem: menuItems[3], quantity: 4 }],
-        total: 121, // 30*4 + 1
-        status: 'Pending',
-        date: new Date('2024-07-20T12:40:00')
-    }
-];
 
 export const salesData = [
   { month: "Jan", totalSales: Math.floor(Math.random() * 5000) + 1000 },
