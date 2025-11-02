@@ -50,7 +50,7 @@ function MenuItemCard({ item }: { item: MenuItemWithId }) {
         <CardTitle className="text-lg font-headline mb-2">{item.name}</CardTitle>
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center bg-muted/50">
-        <p className="text-lg font-bold text-primary">${item.price.toFixed(2)}</p>
+        <p className="text-lg font-bold text-primary">{item.price.toFixed(2)}</p>
         <Button size="sm" onClick={handleAddToCart}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add to Cart
