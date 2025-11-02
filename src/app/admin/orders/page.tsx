@@ -60,9 +60,9 @@ function getBadgeVariant(
 
 export default function AdminOrdersPage() {
   const firestore = useFirestore();
-  const ordersQuery = useMemoFirebase(() => 
-    firestore ? query(collectionGroup(firestore, 'orders')) : null
-  , [firestore]);
+  const ordersQuery = useMemoFirebase(() => {
+    return firestore ? query(collectionGroup(firestore, 'orders')) : null;
+  }, [firestore]);
 
   const { data: orders, isLoading } = useCollection<OrderData>(ordersQuery);
 
