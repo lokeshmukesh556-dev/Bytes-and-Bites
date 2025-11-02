@@ -55,7 +55,7 @@ function OrderItemsTable({ order }: { order: OrderWithId }) {
             `users/${order.userId}/orders/${order.id}/order_items`
           )
         : null,
-    [firestore, order]
+    [firestore, order.userId, order.id]
   );
 
   const { data: orderItems, isLoading: areOrderItemsLoading } =
