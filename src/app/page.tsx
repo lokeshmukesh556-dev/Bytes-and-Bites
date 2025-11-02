@@ -60,7 +60,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary font-headline">
-            byte
+            byte & bite
           </h1>
           <p className="text-muted-foreground">
             Your campus canteen, just a click away.
