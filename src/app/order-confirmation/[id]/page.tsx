@@ -45,7 +45,7 @@ export default function OrderConfirmationPage({
               Show this QR code at the counter to collect your order.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="flex justify-center p-4">
               <Image 
                 src={qrCodeUrl}
@@ -59,12 +59,19 @@ export default function OrderConfirmationPage({
               <p className="font-mono text-lg">{params.id}</p>
             </div>
 
-            <h3 className="font-semibold pt-4 text-center">Order Summary</h3>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">Amount Paid</p>
+              <p className="text-4xl font-bold">₹{total.toFixed(2)}</p>
+            </div>
+            
+            <Separator />
+
+            <h3 className="font-semibold text-center">Order Summary</h3>
             <div className="space-y-2">
               {cartItems.map(item => (
                 <div className="flex justify-between" key={item.id}>
                   <span>{item.name} (x{item.quantity})</span>
-                  <span>{(item.price * item.quantity).toFixed(2)}</span>
+                  <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -72,17 +79,17 @@ export default function OrderConfirmationPage({
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>{subtotal.toFixed(2)}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Convenience Fee</span>
-                <span>{convenienceFee.toFixed(2)}</span>
+                <span>₹{convenienceFee.toFixed(2)}</span>
               </div>
             </div>
             <Separator />
             <div className="flex justify-between font-bold text-xl">
               <span>Total Paid</span>
-              <span>{total.toFixed(2)}</span>
+              <span>₹{total.toFixed(2)}</span>
             </div>
             <div className="pt-6 flex justify-center">
               <Button asChild>
