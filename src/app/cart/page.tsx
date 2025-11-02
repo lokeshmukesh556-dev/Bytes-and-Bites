@@ -21,6 +21,7 @@ import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import GooglePayButton from '@google-pay/button-react';
 
 export default function CartPage() {
   const {
@@ -51,18 +52,20 @@ export default function CartPage() {
           totalAmount: total,
           status: 'Pending',
           convenienceFee: convenienceFee,
-          orderItemIds: [], // We'll update this after creating order items if needed, though often not required with subcollections
         }
       );
-      
+
       if (!newOrderRef) {
-          throw new Error("Failed to create order document.");
+        throw new Error('Failed to create order document.');
       }
 
       // 2. Create OrderItem documents in the subcollection
       const orderItemsPromises = cartItems.map((item) =>
         addDocumentNonBlocking(
-          collection(firestore, `users/${user.uid}/orders/${newOrderRef.id}/order_items`),
+          collection(
+            firestore,
+            `users/${user.uid}/orders/${newOrderRef.id}/order_items`
+          ),
           {
             orderId: newOrderRef.id,
             menuItemId: item.id,
@@ -76,9 +79,8 @@ export default function CartPage() {
 
       // 3. Navigate to confirmation page
       router.push(`/order-confirmation/${newOrderRef.id}`);
-      
+
       // Cart will be cleared on the confirmation page
-      
     } catch (error) {
       console.error('Error creating order:', error);
       // You could show a toast message to the user here
@@ -180,13 +182,49 @@ export default function CartPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button
-                  onClick={handleProceedToPayment}
-                  className="w-full"
-                  disabled={cartItems.length === 0 || isProcessing}
-                >
-                  {isProcessing ? 'Processing...' : 'Proceed to Payment'}
-                </Button>
+                {cartItems.length > 0 && (
+                  <GooglePayButton
+                    environment="TEST"
+                    paymentRequest={{
+                      apiVersion: 2,
+                      apiVersionMinor: 0,
+                      allowedPaymentMethods: [
+                        {
+                          type: 'CARD',
+                          parameters: {
+                            allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                            allowedCardNetworks: ['MASTERCARD', 'VISA'],
+                          },
+                          tokenizationSpecification: {
+                            type: 'PAYMENT_GATEWAY',
+                            parameters: {
+                              gateway: 'example',
+                              gatewayMerchantId: 'exampleGatewayMerchantId',
+                            },
+                          },
+                        },
+                      ],
+                      merchantInfo: {
+                        merchantId: '12345678901234567890',
+                        merchantName: 'Demo Merchant',
+                      },
+                      transactionInfo: {
+                        totalPriceStatus: 'FINAL',
+                        totalPriceLabel: 'Total',
+                        totalPrice: total.toFixed(2),
+                        currencyCode: 'INR',
+                        countryCode: 'IN',
+                      },
+                    }}
+                    onLoadPaymentData={handleProceedToPayment}
+                    buttonType="pay"
+                    buttonSizeMode="fill"
+                    style={{
+                      width: '100%',
+                    }}
+                    disabled={isProcessing}
+                  />
+                )}
               </CardFooter>
             </Card>
           </div>
