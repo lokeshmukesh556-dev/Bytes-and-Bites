@@ -53,7 +53,7 @@ export default function MenuManagementPage() {
   };
 
   const handleSaveItem = async (
-    itemData: Omit<MenuItemData, 'imageUrl' | 'imageHint' | 'description'> & {
+    itemData: Omit<MenuItemData, 'imageUrl' | 'imageHint'> & {
       imageFile?: File;
     },
     id?: string
@@ -79,7 +79,7 @@ export default function MenuManagementPage() {
 
     const finalItemData: MenuItemData = {
       ...restData,
-      description: '', // Always provide a default empty string
+      description: restData.description || '', // Ensure description is always a string
       imageUrl,
       imageHint,
     };
