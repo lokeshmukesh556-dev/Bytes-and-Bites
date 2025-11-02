@@ -190,12 +190,17 @@ export default function CartPage() {
                       apiVersionMinor: 0,
                       allowedPaymentMethods: [
                         {
-                          type: 'UPI',
+                          type: 'CARD',
                           parameters: {
-                            payeeVpa: '9940918442@okicici',
-                            payeeName: 'Violet Bites Canteen',
-                            mcc: '5812',
-                            transactionId: `VIOLETBITES-${Date.now()}`,
+                            allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                            allowedCardNetworks: ['MASTERCARD', 'VISA'],
+                          },
+                          tokenizationSpecification: {
+                            type: 'PAYMENT_GATEWAY',
+                            parameters: {
+                              gateway: 'example',
+                              gatewayMerchantId: 'exampleGatewayMerchantId',
+                            },
                           },
                         },
                       ],
@@ -203,7 +208,6 @@ export default function CartPage() {
                         merchantName: 'Violet Bites',
                         merchantId: 'BCR2DN6T6N44EPIB',
                       },
-      
                       transactionInfo: {
                         totalPriceStatus: 'FINAL',
                         totalPriceLabel: 'Total',
