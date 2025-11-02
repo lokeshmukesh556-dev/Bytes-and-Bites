@@ -21,7 +21,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
+import { RevenuePieChart } from '@/components/admin/revenue-pie-chart';
 
 const stats = [
   {
@@ -60,7 +60,6 @@ export default function AdminDashboardPage() {
             An overview of your canteen's performance.
           </p>
         </div>
-        <Button>View Full Report</Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -78,61 +77,69 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-3">
-          <SalesChart />
-        </div>
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Selling Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="weekly">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="weekly">This Week</TabsTrigger>
-                  <TabsTrigger value="monthly">This Month</TabsTrigger>
-                </TabsList>
-                <TabsContent value="weekly">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Item</TableHead>
-                        <TableHead className="text-right">Number of Sales</TableHead>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <SalesChart />
+        <RevenuePieChart />
+      </div>
+
+      <div className="grid grid-cols-1">
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Selling Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="weekly">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="weekly">This Week</TabsTrigger>
+                <TabsTrigger value="monthly">This Month</TabsTrigger>
+              </TabsList>
+              <TabsContent value="weekly">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Item</TableHead>
+                      <TableHead className="text-right">
+                        Number of Sales
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {topSellingItems.map((item) => (
+                      <TableRow key={item.name}>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell className="text-right">
+                          {item.weekly}
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {topSellingItems.map((item) => (
-                        <TableRow key={item.name}>
-                          <TableCell className="font-medium">{item.name}</TableCell>
-                          <TableCell className="text-right">{item.weekly}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-                <TabsContent value="monthly">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Item</TableHead>
-                        <TableHead className="text-right">Number of Sales</TableHead>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+              <TabsContent value="monthly">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Item</TableHead>
+                      <TableHead className="text-right">
+                        Number of Sales
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {topSellingItems.map((item) => (
+                      <TableRow key={item.name}>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell className="text-right">
+                          {item.monthly}
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {topSellingItems.map((item) => (
-                        <TableRow key={item.name}>
-                          <TableCell className="font-medium">{item.name}</TableCell>
-                          <TableCell className="text-right">{item.monthly}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
