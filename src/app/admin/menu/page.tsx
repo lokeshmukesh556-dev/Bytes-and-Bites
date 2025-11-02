@@ -55,7 +55,6 @@ export default function MenuManagementPage() {
   const handleSaveItem = async (
     itemData: Omit<MenuItemData, 'imageUrl' | 'imageHint'> & {
       imageFile?: File;
-      description?: string;
     },
     id?: string
   ) => {
