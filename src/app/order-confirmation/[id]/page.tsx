@@ -14,6 +14,7 @@ import { useCart } from '@/context/CartContext';
 import { CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
+import Image from 'next/image';
 
 export default function OrderConfirmationPage({
   params,
@@ -23,34 +24,42 @@ export default function OrderConfirmationPage({
   const { cartItems, subtotal, convenienceFee, total, clearCart } = useCart();
   
   useEffect(() => {
+    // Clear the cart when the component unmounts.
+    // This is in a return function so it only runs on cleanup.
     return () => {
       clearCart();
     }
   }, [clearCart]);
 
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(params.id)}`;
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="container py-12 flex justify-center">
-        <Card className="w-full max-w-2xl text-center">
-          <CardHeader className="items-center">
+        <Card className="w-full max-w-2xl">
+          <CardHeader className="items-center text-center">
             <CheckCircle2 className="w-16 h-16 text-green-500 mb-4" />
             <CardTitle className="text-3xl">Order Placed Successfully!</CardTitle>
             <CardDescription>
-              Thank you for your order. Here is your bill.
+              Show this QR code at the counter to collect your order.
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-left space-y-4">
-            <div className="p-4 border bg-muted/50 rounded-lg">
-              <p className="font-semibold">
-                Order ID: <span className="font-mono">{params.id}</span>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Date: {new Date().toLocaleString()}
-              </p>
+          <CardContent className="space-y-4">
+            <div className="flex justify-center p-4">
+              <Image 
+                src={qrCodeUrl}
+                alt={`QR Code for Order ID ${params.id}`}
+                width={150}
+                height={150}
+              />
+            </div>
+            <div className="p-4 border bg-muted/50 rounded-lg text-center">
+              <p className="text-sm text-muted-foreground">Order ID</p>
+              <p className="font-mono text-lg">{params.id}</p>
             </div>
 
-            <h3 className="font-semibold pt-4">Items Ordered</h3>
+            <h3 className="font-semibold pt-4 text-center">Order Summary</h3>
             <div className="space-y-2">
               {cartItems.map(item => (
                 <div className="flex justify-between" key={item.id}>
