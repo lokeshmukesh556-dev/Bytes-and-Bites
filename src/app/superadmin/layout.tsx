@@ -54,7 +54,7 @@ export default function SuperAdminLayout({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="#">
+                <Link href="/superadmin/canteens">
                   <Building />
                   Canteens
                 </Link>
@@ -62,7 +62,7 @@ export default function SuperAdminLayout({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="#">
+                <Link href="/superadmin/users">
                   <Users />
                   Users
                 </Link>
@@ -70,7 +70,7 @@ export default function SuperAdminLayout({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="#">
+                <Link href="/superadmin/revenue">
                   <DollarSign />
                   Revenue
                 </Link>
