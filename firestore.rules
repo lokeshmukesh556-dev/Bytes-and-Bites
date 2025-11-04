@@ -15,7 +15,7 @@
  * - /admin_dashboards/{dashboardId}: Stores admin dashboard data.
  *
  * Key Security Decisions:
- * - User listing is disallowed.
+ * - User listing is disallowed for non-admins.
  * - Menu items are publicly readable.
  * - All write operations (create, update, delete) are strictly controlled based on ownership or admin roles.
  *
@@ -41,7 +41,7 @@ service cloud.firestore {
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false;
+      allow list: if isAdmin();
       allow create: if isSignedIn() && isNewOwner(userId);
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
