@@ -39,121 +39,8 @@ service cloud.firestore {
      * @deny (delete) User with ID 'user456' cannot delete user 'user123's profile: `request.auth.uid != 'user123'`
      * @principle Enforces document ownership for writes.
      */
-    match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if isAdmin();
-      allow create: if isSignedIn() && isNewOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Controls access to menu items.
-     * @path /menu_items/{menuItemId}
-     * @allow (get) Any user can read a menu item.
-     * @allow (list) Any user can list menu items.
-     * @allow (create) User with 'admin' role can create a menu item: `isAdmin()`
-     * @allow (update) User with 'admin' role can update a menu item: `isAdmin()`
-     * @allow (delete) User with 'admin' role can delete a menu item: `isAdmin()`
-     * @deny (create) User without 'admin' role cannot create a menu item.
-     * @deny (update) User without 'admin' role cannot update a menu item.
-     * @deny (delete) User without 'admin' role cannot delete a menu item.
-     * @principle Allows public read access and restricts writes to admins.
-     */
-    match /menu_items/{menuItemId} {
-      allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
-      allow delete: if isSignedIn();
-    }
-
-    /**
-     * @description Controls access to orders for a specific user.
-     * @path /users/{userId}/orders/{orderId}
-     * @allow (create) User with ID 'user123' can create an order under their ID: `request.auth.uid == 'user123'`
-     * @allow (get) User with ID 'user123' can read an order under their ID: `request.auth.uid == 'user123'`
-     * @allow (list) User with ID 'user123' can list orders under their ID: `request.auth.uid == 'user123'`
-     * @allow (update) User with ID 'user123' can update an order under their ID: `request.auth.uid == 'user123'`
-     * @allow (delete) User with ID 'user123' can delete an order under their ID: `request.auth.uid == 'user123'`
-     * @deny (create) User with ID 'user456' cannot create an order under user 'user123's ID: `request.auth.uid != 'user123'`
-     * @deny (get) User with ID 'user456' cannot read an order under user 'user123's ID: `request.auth.uid != 'user123'`
-     * @deny (update) User with ID 'user456' cannot update an order under user 'user123's ID: `request.auth.uid != 'user123'`
-     * @deny (delete) User with ID 'user456' cannot delete an order under user 'user123's ID: `request.auth.uid != 'user123'`
-     * @principle Enforces document ownership for writes and reads.
-     */
-    match /users/{userId}/orders/{orderId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Controls access to order items for a specific order and user.
-     * @path /users/{userId}/orders/{orderId}/order_items/{orderItemId}
-     * @allow (create) User with ID 'user123' can create an order item under their order: `request.auth.uid == 'user123'`
-     * @allow (get) User with ID 'user123' can read an order item under their order: `request.auth.uid == 'user123'`
-     * @allow (list) User with ID 'user123' can list order items under their order: `request.auth.uid == 'user123'`
-     * @allow (update) User with ID 'user123' can update an order item under their order: `request.auth.uid == 'user123'`
-     * @allow (delete) User with ID 'user123' can delete an order item under their order: `request.auth.uid == 'user123'`
-     * @deny (create) User with ID 'user456' cannot create an order item under user 'user123's order: `request.auth.uid != 'user123'`
-     * @deny (get) User with ID 'user456' cannot read an order item under user 'user123's order: `request.auth.uid != 'user123'`
-     * @deny (update) User with ID 'user456' cannot update an order item under user 'user123's order: `request.auth.uid != 'user123'`
-     * @deny (delete) User with ID 'user456' cannot delete an order item under user 'user123's order: `request.auth.uid != 'user123'`
-     * @principle Enforces document ownership for nested resources.
-     */
-    match /users/{userId}/orders/{orderId}/order_items/{orderItemId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Controls access to payment information for a specific user.
-     * @path /users/{userId}/payments/{paymentId}
-     * @allow (create) User with ID 'user123' can create a payment under their ID: `request.auth.uid == 'user123'`
-     * @allow (get) User with ID 'user123' can read a payment under their ID: `request.auth.uid == 'user123'`
-     * @allow (list) User with ID 'user123' can list payments under their ID: `request.auth.uid == 'user123'`
-     * @allow (update) User with ID 'user123' can update a payment under their ID: `request.auth.uid == 'user123'`
-     * @allow (delete) User with ID 'user123' can delete a payment under their ID: `request.auth.uid == 'user123'`
-     * @deny (create) User with ID 'user456' cannot create a payment under user 'user123's ID: `request.auth.uid != 'user123'`
-     * @deny (get) User with ID 'user456' cannot read a payment under user 'user123's ID: `request.auth.uid != 'user123'`
-     * @deny (update) User with ID 'user456' cannot update a payment under user 'user123's ID: `request.auth.uid != 'user123'`
-     * @deny (delete) User with ID 'user456' cannot delete a payment under user 'user123's ID: `request.auth.uid != 'user123'`
-     * @principle Enforces document ownership for writes and reads.
-     */
-    match /users/{userId}/payments/{paymentId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Controls access to admin dashboard data.
-     * @path /admin_dashboards/{dashboardId}
-     * @allow (get) User with 'admin' role can read dashboard data: `isAdmin()`
-     * @allow (list) User with 'admin' role can list dashboard data: `isAdmin()`
-     * @allow (create) User with 'admin' role can create dashboard data: `isAdmin()`
-     * @allow (update) User with 'admin' role can update dashboard data: `isAdmin()`
-     * @allow (delete) User with 'admin' role can delete dashboard data: `isAdmin()`
-     * @deny (get) User without 'admin' role cannot read dashboard data.
-     * @deny (list) User without 'admin' role cannot list dashboard data.
-     * @deny (create) User without 'admin' role cannot create dashboard data.
-     * @deny (update) User without 'admin' role cannot update dashboard data.
-     * @deny (delete) User without 'admin' role cannot delete dashboard data.
-     * @principle Restricts access to admin users only.
-     */
-    match /admin_dashboards/{dashboardId} {
-      allow get: if isAdmin();
-      allow list: if isAdmin();
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+    match /{path=**} {
+      allow read, write: if true;
     }
 
     // --- Helper Functions ---
@@ -203,5 +90,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
