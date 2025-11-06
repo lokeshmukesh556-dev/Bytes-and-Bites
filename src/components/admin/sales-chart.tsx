@@ -12,7 +12,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { salesData } from '@/lib/data';
+import { useMemo } from 'react';
+import type { OrderWithId } from '@/app/admin/orders/page';
 
 const chartConfig = {
   totalSales: {
@@ -21,12 +22,79 @@ const chartConfig = {
   },
 };
 
-export function SalesChart() {
+interface SalesChartProps {
+  orders: OrderWithId[] | null;
+  isLoading: boolean;
+}
+
+export function SalesChart({ orders, isLoading }: SalesChartProps) {
+  const salesData = useMemo(() => {
+    if (!orders) return [];
+
+    const monthlySales: Record<string, number> = {};
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    // Initialize all months of the current year to 0
+    const currentYear = new Date().getFullYear();
+    for (let i = 0; i < 12; i++) {
+        const monthKey = `${currentYear}-${i}`;
+        monthlySales[monthKey] = 0;
+    }
+
+
+    orders.forEach((order) => {
+      const date = new Date(order.orderDate);
+      const year = date.getFullYear();
+      if(year === currentYear) {
+        const month = date.getMonth();
+        const key = `${year}-${month}`;
+        monthlySales[key] = (monthlySales[key] || 0) + order.totalAmount;
+      }
+    });
+
+    return Object.entries(monthlySales).map(([key, totalSales]) => {
+      const [year, month] = key.split('-').map(Number);
+      return {
+        month: monthNames[month],
+        totalSales,
+      };
+    }).sort((a,b) => monthNames.indexOf(a.month) - monthNames.indexOf(b.month));
+  }, [orders]);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Income Statistics</CardTitle>
+          <CardDescription>Last 12 Months</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full flex items-center justify-center">
+            Loading chart data...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Income Statistics</CardTitle>
-        <CardDescription>Last 1 Year</CardDescription>
+        <CardDescription>This Year</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px] w-full">

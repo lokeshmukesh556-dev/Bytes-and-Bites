@@ -13,18 +13,19 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  setDoc,
 } from 'firebase/firestore';
 import { useCollection, useFirestore, WithId, useUser } from '@/firebase';
-import { menuItems as initialMenuItems, type MenuItem } from '@/lib/data';
 import {
   addDocumentNonBlocking,
   updateDocumentNonBlocking,
   deleteDocumentNonBlocking,
+  setDocumentNonBlocking,
 } from '@/firebase/non-blocking-updates';
 import { useMemoFirebase } from '@/firebase/provider';
 
 // Redefine MenuItem to use imageUrl directly
-export interface MenuItemData extends Omit<MenuItem, 'id' | 'image'> {
+export interface MenuItemData {
   name: string;
   price: number;
   category: 'meal' | 'snack';
@@ -58,29 +59,6 @@ export function MenuProvider({ children }: { children: ReactNode }) {
   const { data: menuItems, isLoading: isMenuLoading } =
     useCollection<MenuItemData>(menuItemsCollection);
 
-  // Seed initial data if the collection is empty
-  useEffect(() => {
-    // We need to wait for auth to be resolved and for the menu items to be loaded
-    if (isUserLoading || isMenuLoading || !firestore) {
-      return;
-    }
-
-    if (user && menuItems && menuItems.length === 0) {
-      initialMenuItems.forEach((item) => {
-        const { id, image, ...rest } = item;
-        const newItemData: MenuItemData = {
-          ...rest,
-          imageUrl: image.imageUrl,
-          imageHint: image.imageHint,
-        };
-        addDocumentNonBlocking(
-          collection(firestore, 'menu_items'),
-          newItemData
-        );
-      });
-    }
-  }, [user, menuItems, isMenuLoading, isUserLoading, firestore]);
-
   const addMenuItem = (item: MenuItemData) => {
     if (!firestore) return;
     addDocumentNonBlocking(collection(firestore, 'menu_items'), item);
@@ -89,6 +67,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
   const updateMenuItem = (id: string, updatedItem: Partial<MenuItemData>) => {
     if (!firestore) return;
     const docRef = doc(firestore, 'menu_items', id);
+    // Use `updateDoc` for partial updates
     updateDocumentNonBlocking(docRef, updatedItem);
   };
 
