@@ -59,18 +59,21 @@ export default function MenuManagementPage() {
     id?: string
   ) => {
     const { imageFile, ...restData } = itemData;
-
+  
     let imageUrl: string | undefined = undefined;
     if (imageFile) {
-      const storage = getStorage(firebaseApp);
-      const storageRef = ref(
-        storage,
-        `menu_items/${Date.now()}_${imageFile.name}`
-      );
-      const snapshot = await uploadBytes(storageRef, imageFile);
-      imageUrl = await getDownloadURL(snapshot.ref);
+      try {
+        const storage = getStorage(firebaseApp);
+        const storageRef = ref(storage, `menu_items/${Date.now()}_${imageFile.name}`);
+        const snapshot = await uploadBytes(storageRef, imageFile);
+        imageUrl = await getDownloadURL(snapshot.ref);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        // Optionally, show a toast to the user
+        return; // Stop execution if image upload fails
+      }
     }
-
+  
     if (id) {
       // Logic for updating an existing item
       const dataToUpdate: Partial<MenuItemData> = {
@@ -90,14 +93,12 @@ export default function MenuManagementPage() {
         description: restData.description || '',
         imageUrl:
           imageUrl ||
-          `https://picsum.photos/seed/${Math.floor(
-            Math.random() * 1000
-          )}/600/400`,
+          `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/600/400`,
         imageHint: 'food placeholder',
       };
       addMenuItem(finalNewItemData);
     }
-
+  
     handleCloseDialog();
   };
 
