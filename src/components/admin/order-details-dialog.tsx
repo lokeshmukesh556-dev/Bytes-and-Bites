@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -6,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Table,
@@ -27,6 +29,8 @@ import {
 import { collection } from 'firebase/firestore';
 import { useMemoFirebase } from '@/firebase/provider';
 import { useMenu, type MenuItemWithId } from '@/context/MenuContext';
+import { Button } from '../ui/button';
+import { CheckCircle } from 'lucide-react';
 
 // Matches OrderItem entity in backend.json
 export interface OrderItemData {
@@ -41,6 +45,7 @@ interface OrderDetailsDialogProps {
   order: OrderWithId;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onMarkCompleted: () => void;
 }
 
 function OrderItemsTable({ order }: { order: OrderWithId }) {
@@ -108,8 +113,14 @@ export function OrderDetailsDialog({
   order,
   isOpen,
   onOpenChange,
+  onMarkCompleted,
 }: OrderDetailsDialogProps) {
   const subtotal = order.totalAmount - order.convenienceFee;
+
+  const handleMarkAndClose = () => {
+    onMarkCompleted();
+    onOpenChange(false);
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -162,6 +173,15 @@ export function OrderDetailsDialog({
             <p>{order.totalAmount.toFixed(2)}</p>
           </div>
         </div>
+        <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+            {order.status !== 'Completed' && (
+                 <Button onClick={handleMarkAndClose}>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Mark as Served & Close
+                 </Button>
+            )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
