@@ -105,7 +105,7 @@ export default function LoginPage() {
       sendPasswordReset(auth, resetEmail);
       toast({
         title: 'Password Reset Email Sent',
-        description: `If an account exists for ${resetEmail}, you will receive an email with instructions.`,
+        description: `If an account exists for ${resetEmail}, you will receive an email with instructions. Please check your spam folder if you do not see it.`,
       });
       setIsResetDialogOpen(false);
       setResetEmail('');
