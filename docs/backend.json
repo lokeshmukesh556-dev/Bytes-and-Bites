@@ -61,6 +61,10 @@
           "type": "string",
           "description": "URL for the image of the menu item.",
           "format": "uri"
+        },
+        "stock": {
+          "type": "number",
+          "description": "The available stock quantity of the menu item."
         }
       },
       "required": [
@@ -68,7 +72,8 @@
         "name",
         "description",
         "price",
-        "category"
+        "category",
+        "stock"
       ]
     },
     "Order": {

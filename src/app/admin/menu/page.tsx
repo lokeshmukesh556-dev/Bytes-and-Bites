@@ -84,6 +84,7 @@ export default function MenuManagementPage() {
       description: itemData.description || '',
       price: itemData.price,
       category: itemData.category,
+      stock: itemData.stock,
       imageUrl: finalImageUrl,
       imageHint: itemData.name.toLowerCase(), // Use item name as a hint
     };
@@ -125,6 +126,7 @@ export default function MenuManagementPage() {
                 </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead>Stock</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -134,7 +136,7 @@ export default function MenuManagementPage() {
             <TableBody>
               {isLoading && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">
+                  <TableCell colSpan={6} className="text-center">
                     Loading menu...
                   </TableCell>
                 </TableRow>
@@ -158,6 +160,7 @@ export default function MenuManagementPage() {
                         {item.category}
                       </Badge>
                     </TableCell>
+                    <TableCell>{item.stock}</TableCell>
                     <TableCell>{item.price.toFixed(2)}</TableCell>
                     <TableCell>
                       <DropdownMenu>

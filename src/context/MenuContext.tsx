@@ -32,6 +32,7 @@ export interface MenuItemData {
   imageUrl: string;
   imageHint: string;
   description: string;
+  stock: number;
 }
 
 export type MenuItemWithId = WithId<MenuItemData>;

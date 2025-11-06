@@ -40,6 +40,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   price: z.coerce.number().positive('Price must be a positive number.'),
   category: z.enum(['meal', 'snack']),
+  stock: z.coerce.number().int().min(0, 'Stock cannot be negative.'),
   imageUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   imageFile: z.instanceof(File).optional().nullable(),
 });
@@ -69,6 +70,7 @@ export function MenuItemFormDialog({
       description: '',
       price: 0,
       category: 'meal',
+      stock: 0,
       imageUrl: '',
       imageFile: null,
     },
@@ -83,6 +85,7 @@ export function MenuItemFormDialog({
           description: item.description || '',
           price: item.price,
           category: item.category,
+          stock: item.stock,
           imageUrl: item.imageUrl || '',
           imageFile: null,
         });
@@ -92,6 +95,7 @@ export function MenuItemFormDialog({
           description: '',
           price: 0,
           category: 'meal',
+          stock: 0,
           imageUrl: '',
           imageFile: null,
         });
@@ -149,20 +153,35 @@ export function MenuItemFormDialog({
                   </FormItem>
                 )}
               />
+              <div className="grid grid-cols-2 gap-4">
+                 <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="stock"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Stock Quantity</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="1" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="category"

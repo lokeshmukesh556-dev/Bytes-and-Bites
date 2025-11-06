@@ -22,10 +22,12 @@ import { useCart } from '@/context/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { useMenu, type MenuItemWithId } from '@/context/MenuContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 
 function MenuItemCard({ item }: { item: MenuItemWithId }) {
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const isSoldOut = item.stock <= 0;
 
   const handleAddToCart = () => {
     addToCart(item.id);
@@ -36,14 +38,22 @@ function MenuItemCard({ item }: { item: MenuItemWithId }) {
   };
 
   return (
-    <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300">
+    <Card className="flex flex-col overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 relative">
+       {isSoldOut && (
+        <Badge
+          variant="destructive"
+          className="absolute top-2 right-2 z-10"
+        >
+          Sold Out
+        </Badge>
+      )}
       <CardHeader className="p-0">
         <Image
           src={item.imageUrl}
           alt={item.name}
           width={600}
           height={400}
-          className="w-full h-48 object-cover"
+          className={`w-full h-48 object-cover ${isSoldOut ? 'grayscale' : ''}`}
           data-ai-hint={item.imageHint}
         />
       </CardHeader>
@@ -52,9 +62,8 @@ function MenuItemCard({ item }: { item: MenuItemWithId }) {
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center bg-muted/50">
         <p className="text-lg font-bold text-primary">{item.price.toFixed(2)}</p>
-        <Button size="sm" onClick={handleAddToCart}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Add to Cart
+        <Button size="sm" onClick={handleAddToCart} disabled={isSoldOut}>
+          {isSoldOut ? 'Sold Out' : <><PlusCircle className="mr-2 h-4 w-4" /> Add to Cart</>}
         </Button>
       </CardFooter>
     </Card>

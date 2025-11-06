@@ -15,6 +15,7 @@ import {
   ClipboardList,
   LifeBuoy,
   UtensilsCrossed,
+  Archive,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -65,6 +66,14 @@ export default function AdminLayout({
                 <Link href="/admin/menu">
                   <Utensils />
                   Menu Management
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/admin/stocks">
+                  <Archive />
+                  Stocks
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
