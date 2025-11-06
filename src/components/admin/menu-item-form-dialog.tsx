@@ -33,6 +33,8 @@ import { type MenuItemWithId } from '@/context/MenuContext';
 import { useEffect } from 'react';
 import { Textarea } from '../ui/textarea';
 import { ScrollArea } from '../ui/scroll-area';
+import { ImageUploader } from './image-uploader';
+
 
 const formSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters long.'),
@@ -40,6 +42,7 @@ const formSchema = z.object({
   price: z.coerce.number().positive('Price must be a positive number.'),
   category: z.enum(['meal', 'snack']),
   imageUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
+  imageFile: z.instanceof(File).optional().nullable(),
 });
 
 type MenuItemFormValues = z.infer<typeof formSchema>;
@@ -68,6 +71,7 @@ export function MenuItemFormDialog({
       price: 0,
       category: 'meal',
       imageUrl: '',
+      imageFile: null,
     },
   });
 
@@ -81,6 +85,7 @@ export function MenuItemFormDialog({
           price: item.price,
           category: item.category,
           imageUrl: item.imageUrl || '',
+          imageFile: null,
         });
       } else {
         form.reset({
@@ -89,6 +94,7 @@ export function MenuItemFormDialog({
           price: 0,
           category: 'meal',
           imageUrl: '',
+          imageFile: null,
         });
       }
     }
@@ -185,21 +191,21 @@ export function MenuItemFormDialog({
               />
               <FormField
                 control={form.control}
-                name="imageUrl"
+                name="imageFile"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Image URL</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="https://example.com/image.jpg"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                    <FormItem>
+                        <FormLabel>Image</FormLabel>
+                        <FormControl>
+                            <ImageUploader 
+                                onFileChange={(file) => field.onChange(file)}
+                                onUrlChange={(url) => form.setValue('imageUrl', url)}
+                                currentImageUrl={form.watch('imageUrl')}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
                 )}
-              />
+                />
               <DialogFooter className="sticky bottom-0 bg-background pt-4">
                 <Button
                   type="button"

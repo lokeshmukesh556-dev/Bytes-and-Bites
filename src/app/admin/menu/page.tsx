@@ -34,6 +34,7 @@ import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { MenuItemFormDialog } from '@/components/admin/menu-item-form-dialog';
 import { useFirebaseApp } from '@/firebase';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function MenuManagementPage() {
   const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem, isLoading } =
@@ -52,30 +53,43 @@ export default function MenuManagementPage() {
   };
 
   const handleSaveItem = async (
-    itemData: Omit<MenuItemData, 'imageHint'>,
+    itemData: Omit<MenuItemData, 'imageHint' | 'imageUrl'> & { imageFile?: File | null, imageUrl?: string },
     id?: string
   ) => {
     handleCloseDialog();
+    const app = useFirebaseApp();
+    const storage = getStorage(app);
     
-    let finalImageUrl = itemData.imageUrl;
+    let finalImageUrl = itemData.imageUrl || '';
 
-    // If no image URL is provided for a new item, use a placeholder.
+    // If a new file is uploaded, upload it to storage and get the URL
+    if (itemData.imageFile) {
+        const file = itemData.imageFile;
+        const storageRef = ref(storage, `menu_items/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        finalImageUrl = await getDownloadURL(snapshot.ref);
+    }
+
+    // If no image URL and no file, and it's a new item, use a placeholder
     if (!finalImageUrl && !id) {
         finalImageUrl = `https://picsum.photos/seed/${Math.random()}/600/400`;
     }
 
+    // If it's an existing item and no new image was provided, keep the old one.
+    if (!finalImageUrl && id) {
+        const currentItem = menuItems.find(item => item.id === id);
+        finalImageUrl = currentItem?.imageUrl || '';
+    }
+
     const dataToSave = {
-        ...itemData,
+        name: itemData.name,
         description: itemData.description || '',
-        imageUrl: finalImageUrl || (id ? menuItems.find(item => item.id === id)?.imageUrl : '') || '',
+        price: itemData.price,
+        category: itemData.category,
+        imageUrl: finalImageUrl,
     };
     
     if (id) {
-        // Ensure imageUrl is not an empty string if it was not provided and the item is being edited.
-        if (!dataToSave.imageUrl) {
-            const currentItem = menuItems.find(item => item.id === id);
-            dataToSave.imageUrl = currentItem?.imageUrl || '';
-        }
       updateMenuItem(id, dataToSave);
     } else {
       addMenuItem({
