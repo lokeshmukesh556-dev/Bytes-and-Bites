@@ -35,13 +35,15 @@ import { useState } from 'react';
 import { MenuItemFormDialog } from '@/components/admin/menu-item-form-dialog';
 import { useFirebaseApp } from '@/firebase';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { FirebaseApp } from 'firebase/app';
 
 export default function MenuManagementPage() {
   const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem, isLoading } =
     useMenu();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItemWithId | null>(null);
-  
+  const app = useFirebaseApp(); // Moved hook to the top level
+
   const handleOpenDialog = (item: MenuItemWithId | null = null) => {
     setEditingItem(item);
     setIsDialogOpen(true);
@@ -53,49 +55,53 @@ export default function MenuManagementPage() {
   };
 
   const handleSaveItem = async (
-    itemData: Omit<MenuItemData, 'imageHint' | 'imageUrl'> & { imageFile?: File | null, imageUrl?: string },
+    app: FirebaseApp, // Pass app instance as an argument
+    itemData: Omit<MenuItemData, 'imageHint' | 'imageUrl'> & {
+      imageFile?: File | null;
+      imageUrl?: string;
+    },
     id?: string
   ) => {
     handleCloseDialog();
-    const app = useFirebaseApp();
     const storage = getStorage(app);
-    
+
     let finalImageUrl = itemData.imageUrl || '';
 
     // If a new file is uploaded, upload it to storage and get the URL
     if (itemData.imageFile) {
-        const file = itemData.imageFile;
-        const storageRef = ref(storage, `menu_items/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        finalImageUrl = await getDownloadURL(snapshot.ref);
+      const file = itemData.imageFile;
+      const storageRef = ref(storage, `menu_items/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      finalImageUrl = await getDownloadURL(snapshot.ref);
     }
 
     // If no image URL and no file, and it's a new item, use a placeholder
     if (!finalImageUrl && !id) {
-        finalImageUrl = `https://picsum.photos/seed/${Math.random()}/600/400`;
+      finalImageUrl = `https://picsum.photos/seed/${Math.random()}/600/400`;
     }
 
-    // If it's an existing item and no new image was provided, keep the old one.
-    if (!finalImageUrl && id) {
-        const currentItem = menuItems.find(item => item.id === id);
-        finalImageUrl = currentItem?.imageUrl || '';
-    }
-
-    const dataToSave = {
-        name: itemData.name,
-        description: itemData.description || '',
-        price: itemData.price,
-        category: itemData.category,
-        imageUrl: finalImageUrl,
+    const dataToSave: Partial<MenuItemData> = {
+      name: itemData.name,
+      description: itemData.description || '',
+      price: itemData.price,
+      category: itemData.category,
     };
-    
+
+    // Only add imageUrl if it's being set or changed.
+    if (finalImageUrl) {
+        dataToSave.imageUrl = finalImageUrl;
+    }
+
     if (id) {
       updateMenuItem(id, dataToSave);
     } else {
-      addMenuItem({
-          ...dataToSave,
-          imageHint: 'food placeholder' // default hint for new items
-      });
+      // Ensure new items have all required fields.
+      const newItemData = {
+        ...dataToSave,
+        imageUrl: finalImageUrl, // must have an image url
+        imageHint: 'food placeholder', // default hint
+      } as MenuItemData;
+      addMenuItem(newItemData);
     }
   };
 
@@ -197,7 +203,7 @@ export default function MenuManagementPage() {
       <MenuItemFormDialog
         isOpen={isDialogOpen}
         onOpenChange={handleCloseDialog}
-        onSave={handleSaveItem}
+        onSave={(...args) => handleSaveItem(app, ...args)} // Pass the app instance here
         item={editingItem}
       />
     </>
