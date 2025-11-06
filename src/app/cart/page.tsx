@@ -31,6 +31,7 @@ export default function CartPage() {
     subtotal,
     convenienceFee,
     total,
+    clearCart,
   } = useCart();
   const firestore = useFirestore();
   const { user } = useUser();
@@ -77,10 +78,12 @@ export default function CartPage() {
 
       await Promise.all(orderItemsPromises);
 
-      // 3. Navigate to confirmation page
+      // 3. Clear the cart
+      clearCart();
+      
+      // 4. Navigate to confirmation page
       router.push(`/order-confirmation/${newOrderRef.id}`);
 
-      // Cart will be cleared on the confirmation page
     } catch (error) {
       console.error('Error creating order:', error);
       // You could show a toast message to the user here

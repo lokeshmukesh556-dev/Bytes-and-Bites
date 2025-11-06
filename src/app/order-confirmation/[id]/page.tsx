@@ -21,15 +21,10 @@ export default function OrderConfirmationPage({
 }: {
   params: { id: string };
 }) {
-  const { cartItems, subtotal, convenienceFee, total, clearCart } = useCart();
+  const { cartItems, subtotal, convenienceFee, total } = useCart();
   
-  useEffect(() => {
-    // Clear the cart when the component unmounts.
-    // This is in a return function so it only runs on cleanup.
-    return () => {
-      clearCart();
-    }
-  }, [clearCart]);
+  // The cart is now cleared on the cart page before navigating here.
+  // The useEffect that was here has been removed.
 
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(params.id)}`;
 
