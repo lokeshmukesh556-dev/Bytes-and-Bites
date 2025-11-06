@@ -72,7 +72,31 @@ export default function CartPage() {
 
       // 2. Create OrderItem documents and update stock in a transaction
       await runTransaction(firestore, async (transaction) => {
-        const orderItemsPromises = cartItems.map(async (item) => {
+        // Phase 1: Read all necessary documents first.
+        const stockReads = await Promise.all(
+          cartItems.map(item => {
+            const menuItemRef = doc(firestore, 'menu_items', item.id);
+            return transaction.get(menuItemRef).then(menuItemDoc => ({
+              item,
+              menuItemRef,
+              menuItemDoc,
+            }));
+          })
+        );
+      
+        // Phase 2: Perform all writes based on the reads.
+        for (const { item, menuItemRef, menuItemDoc } of stockReads) {
+          if (!menuItemDoc.exists()) {
+            throw `Menu item ${item.name} not found!`;
+          }
+      
+          const currentStock = menuItemDoc.data().stock;
+          const newStock = currentStock - item.quantity;
+      
+          if (newStock < 0) {
+            throw `Not enough stock for ${item.name}. Only ${currentStock} left.`;
+          }
+      
           // Add item to the order's subcollection
           const newOrderItemRef = doc(collection(firestore, `users/${user.uid}/orders/${newOrderRef.id}/order_items`));
           transaction.set(newOrderItemRef, {
@@ -81,27 +105,10 @@ export default function CartPage() {
             quantity: item.quantity,
             price: item.price,
           });
-
+      
           // Decrease the stock for the menu item
-          const menuItemRef = doc(firestore, 'menu_items', item.id);
-          const menuItemDoc = await transaction.get(menuItemRef);
-          if (!menuItemDoc.exists()) {
-            throw `Menu item ${item.name} not found!`;
-          }
-
-          const currentStock = menuItemDoc.data().stock;
-          const newStock = currentStock - item.quantity;
-          
-          if (newStock < 0) {
-            throw `Not enough stock for ${item.name}. Only ${currentStock} left.`;
-          }
-
           transaction.update(menuItemRef, { stock: newStock });
-        });
-        
-        // This won't actually run them in parallel inside a transaction,
-        // but it's a clean way to structure the logic.
-        await Promise.all(orderItemsPromises);
+        }
       });
       
       // 3. Navigate to confirmation page
@@ -170,7 +177,6 @@ export default function CartPage() {
                         type: 'PAYMENT_GATEWAY',
                         parameters: {
                             gateway: 'example',
-                            gatewayMerchantId: 'exampleGatewayMerchantId',
                         },
                     },
                 },
