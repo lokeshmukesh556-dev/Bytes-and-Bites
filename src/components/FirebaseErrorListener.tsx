@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -16,6 +17,8 @@ function getAuthErrorMessage(errorCode: string): string {
       return 'The password is too weak. Please use at least 6 characters.';
     case 'auth/invalid-email':
         return 'The email address is not valid.';
+    case 'auth/operation-not-allowed':
+        return 'An internal authentication error occurred. Please try again later.';
     default:
       return 'An authentication error occurred. Please try again.';
   }
@@ -24,7 +27,7 @@ function getAuthErrorMessage(errorCode: string): string {
 /**
  * An invisible component that listens for globally emitted errors.
  * For Firestore permission errors, it throws them to be caught by Next.js's overlay.
- * For Auth errors, it displays a user-friendly toast notification.
+ * For Auth errors, it displays a user-friendly toast notification, unless it's a silent-fail error.
  */
 export function FirebaseErrorListener() {
   const [permissionError, setPermissionError] = useState<FirestorePermissionError | null>(null);
@@ -36,6 +39,13 @@ export function FirebaseErrorListener() {
     };
 
     const handleAuthError = (error: AuthError) => {
+      // Don't show a toast for errors that should fail silently,
+      // like the initial anonymous auth setup.
+      if (error.code === 'auth/operation-not-allowed') {
+        console.warn('Silent auth error:', error.message);
+        return;
+      }
+      
       toast({
         variant: 'destructive',
         title: 'Authentication Failed',
