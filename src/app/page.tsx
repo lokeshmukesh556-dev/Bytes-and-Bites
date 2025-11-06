@@ -375,9 +375,25 @@ export default function LoginPage() {
                     placeholder="super@violetbites.com"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <Label htmlFor="superadmin-password">Password</Label>
-                  <Input id="superadmin-password" type="password" />
+                  <Input
+                    id="superadmin-password"
+                    type={showPassword ? 'text' : 'password'}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute bottom-1 right-1 h-7 w-7"
+                    onClick={togglePasswordVisibility}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
                 <Button
                   asChild
@@ -393,3 +409,5 @@ export default function LoginPage() {
     </main>
   );
 }
+
+    
