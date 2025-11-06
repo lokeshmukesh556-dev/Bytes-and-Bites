@@ -96,7 +96,6 @@ export default function LoginPage() {
     );
   }
 
-
   return (
     <main className="flex items-center justify-center min-h-screen bg-background p-4">
       <div className="w-full max-w-md">
@@ -116,84 +115,84 @@ export default function LoginPage() {
           </TabsList>
           <TabsContent value="customer">
             <Tabs defaultValue="login" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="login">Login</TabsTrigger>
-                    <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                </TabsList>
-                <TabsContent value="login">
-                    <Card>
-                    <CardHeader>
-                        <CardTitle>Customer Login</CardTitle>
-                        <CardDescription>
-                        Enter your credentials to order your meal.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                        <Label htmlFor="customer-email">Email</Label>
-                        <Input
-                            id="customer-email"
-                            type="email"
-                            placeholder="user@example.com"
-                            value={customerEmail}
-                            onChange={(e) => setCustomerEmail(e.target.value)}
-                        />
-                        </div>
-                        <div className="space-y-2">
-                        <Label htmlFor="customer-password">Password</Label>
-                        <Input
-                            id="customer-password"
-                            type="password"
-                            value={customerPassword}
-                            onChange={(e) => setCustomerPassword(e.target.value)}
-                        />
-                        </div>
-                        <Button
-                        onClick={handleCustomerLogin}
-                        className="w-full bg-primary hover:bg-primary/90"
-                        >
-                        Login
-                        </Button>
-                    </CardContent>
-                    </Card>
-                </TabsContent>
-                <TabsContent value="signup">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
+              <TabsContent value="login">
                 <Card>
-              <CardHeader>
-                <CardTitle>Create Account</CardTitle>
-                <CardDescription>
-                  Sign up to start ordering.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="user@example.com"
-                    value={signUpEmail}
-                    onChange={(e) => setSignUpEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={signUpPassword}
-                    onChange={(e) => setSignUpPassword(e.target.value)}
-                  />
-                </div>
-                <Button
-                  onClick={handleCustomerSignUp}
-                  className="w-full bg-primary hover:bg-primary/90"
-                >
-                  Create Account
-                </Button>
-              </CardContent>
-            </Card>
-                </TabsContent>
+                  <CardHeader>
+                    <CardTitle>Customer Login</CardTitle>
+                    <CardDescription>
+                      Enter your credentials to order your meal.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="customer-email">Email</Label>
+                      <Input
+                        id="customer-email"
+                        type="email"
+                        placeholder="user@example.com"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="customer-password">Password</Label>
+                      <Input
+                        id="customer-password"
+                        type="password"
+                        value={customerPassword}
+                        onChange={(e) => setCustomerPassword(e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      onClick={handleCustomerLogin}
+                      className="w-full bg-primary hover:bg-primary/90"
+                    >
+                      Login
+                    </Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="signup">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Create Account</CardTitle>
+                    <CardDescription>
+                      Sign up to start ordering.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="user@example.com"
+                        value={signUpEmail}
+                        onChange={(e) => setSignUpEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        value={signUpPassword}
+                        onChange={(e) => setSignUpPassword(e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      onClick={handleCustomerSignUp}
+                      className="w-full bg-primary hover:bg-primary/90"
+                    >
+                      Create Account
+                    </Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </Tabs>
           </TabsContent>
           <TabsContent value="admin">
@@ -240,7 +239,7 @@ export default function LoginPage() {
                 <CardDescription>
                   Access the application's global data.
                 </CardDescription>
-              </Header>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="superadmin-email">Email</Label>
