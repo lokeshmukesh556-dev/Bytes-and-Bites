@@ -25,8 +25,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
-import { useState } from 'react';
-import { OrderDetailsDialog } from '@/components/admin/order-details-dialog';
 import { useCollection, useFirestore, WithId } from '@/firebase';
 import { collectionGroup, doc, query, updateDoc } from 'firebase/firestore';
 import { useMemoFirebase } from '@/firebase/provider';
@@ -67,10 +65,6 @@ export default function AdminOrdersPage() {
 
   const { data: orders, isLoading } = useCollection<OrderData>(ordersQuery);
 
-  const [selectedOrder, setSelectedOrder] = useState<OrderWithId | null>(null);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-
-  
   const handleUpdateStatus = (orderId: string, userId: string, status: OrderWithId['status']) => {
     if (!firestore) return;
     const orderRef = doc(firestore, `users/${userId}/orders/${orderId}`);
