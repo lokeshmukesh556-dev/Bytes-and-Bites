@@ -61,8 +61,6 @@ export default function MenuManagementPage() {
     const { imageFile, ...restData } = itemData;
 
     let imageUrl: string | undefined = undefined;
-
-    // 1. Handle image upload if a new file is provided
     if (imageFile) {
       const storage = getStorage(firebaseApp);
       const storageRef = ref(
@@ -73,8 +71,8 @@ export default function MenuManagementPage() {
       imageUrl = await getDownloadURL(snapshot.ref);
     }
 
-    // 2. Logic for updating an existing item
     if (id) {
+      // Logic for updating an existing item
       const dataToUpdate: Partial<MenuItemData> = {
         ...restData,
         description: restData.description || '',
@@ -83,21 +81,19 @@ export default function MenuManagementPage() {
         dataToUpdate.imageUrl = imageUrl;
       }
       updateMenuItem(id, dataToUpdate);
-    } 
-    // 3. Logic for adding a new item
-    else {
-      // For a new item, we need all fields for MenuItemData
+    } else {
+      // Logic for adding a new item
       const finalNewItemData: MenuItemData = {
-        name: restData.name!,
-        price: restData.price!,
-        category: restData.category!,
+        name: restData.name,
+        price: restData.price,
+        category: restData.category,
         description: restData.description || '',
         imageUrl:
           imageUrl ||
           `https://picsum.photos/seed/${Math.floor(
             Math.random() * 1000
           )}/600/400`,
-        imageHint: 'food placeholder', // Not generating new hints for uploads for simplicity
+        imageHint: 'food placeholder',
       };
       addMenuItem(finalNewItemData);
     }
