@@ -17,6 +17,7 @@ function getAuthErrorMessage(errorCode: string): string {
       return 'The password is too weak. Please use at least 6 characters.';
     case 'auth/invalid-email':
         return 'The email address is not valid.';
+    // This error is often a transient issue on initial load and should not be shown to the user.
     case 'auth/operation-not-allowed':
         return 'An internal authentication error occurred. Please try again later.';
     default:
@@ -40,7 +41,7 @@ export function FirebaseErrorListener() {
 
     const handleAuthError = (error: AuthError) => {
       // Don't show a toast for errors that should fail silently,
-      // like the initial anonymous auth setup.
+      // like the initial anonymous auth setup which can sometimes fail on first load.
       if (error.code === 'auth/operation-not-allowed') {
         console.warn('Silent auth error:', error.message);
         return;
