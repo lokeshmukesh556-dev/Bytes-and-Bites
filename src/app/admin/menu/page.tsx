@@ -35,14 +35,13 @@ import { useState } from 'react';
 import { MenuItemFormDialog } from '@/components/admin/menu-item-form-dialog';
 import { useFirebaseApp } from '@/firebase';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { FirebaseApp } from 'firebase/app';
 
 export default function MenuManagementPage() {
   const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem, isLoading } =
     useMenu();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItemWithId | null>(null);
-  const app = useFirebaseApp(); // Moved hook to the top level
+  const app = useFirebaseApp(); 
 
   const handleOpenDialog = (item: MenuItemWithId | null = null) => {
     setEditingItem(item);
@@ -65,46 +64,38 @@ export default function MenuManagementPage() {
     const storage = getStorage(app);
 
     let finalImageUrl = itemData.imageUrl || '';
-    
-    // If we are editing an existing item, preserve its URL unless a new one is provided.
-    if (id && editingItem && !itemData.imageFile && !itemData.imageUrl) {
-        finalImageUrl = editingItem.imageUrl;
-    }
 
-    // If a new file is uploaded, upload it to storage and get the URL
+    // If a new file is uploaded, upload it and get the URL
     if (itemData.imageFile) {
       const file = itemData.imageFile;
       const storageRef = ref(storage, `menu_items/${Date.now()}_${file.name}`);
       const snapshot = await uploadBytes(storageRef, file);
       finalImageUrl = await getDownloadURL(snapshot.ref);
-    }
-
-    // If no image URL and no file, and it's a new item, use a placeholder
-    if (!finalImageUrl && !id) {
+    } else if (id && editingItem && !itemData.imageUrl) {
+      // If editing, no new file, and no new URL, keep the existing one.
+      finalImageUrl = editingItem.imageUrl;
+    } else if (!finalImageUrl && !id) {
+        // If creating a new item with no image, use a placeholder
       finalImageUrl = `https://picsum.photos/seed/${Math.random()}/600/400`;
     }
 
-    const dataToSave: Partial<MenuItemData> = {
+    const dataToSave: MenuItemData = {
       name: itemData.name,
       description: itemData.description || '',
       price: itemData.price,
       category: itemData.category,
       imageUrl: finalImageUrl,
+      imageHint: itemData.name.toLowerCase(), // Use item name as a hint
     };
 
     if (id) {
       updateMenuItem(id, dataToSave);
     } else {
-      // Ensure new items have all required fields.
-      const newItemData = {
-        ...dataToSave,
-        imageUrl: finalImageUrl, // must have an image url
-        imageHint: 'food placeholder', // default hint
-      } as MenuItemData;
-      addMenuItem(newItemData);
+      addMenuItem(dataToSave);
     }
     handleCloseDialog();
   };
+
 
   const handleDeleteItem = (itemId: string) => {
     deleteMenuItem(itemId);
