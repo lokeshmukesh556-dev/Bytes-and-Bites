@@ -124,7 +124,6 @@ export default function CartPage() {
         apiVersionMinor: 0,
         merchantInfo: {
             merchantName: 'Violet Bites',
-            merchantId: 'BCR2DN6T6N44EPIB',
         },
         transactionInfo: {
             totalPriceStatus: 'FINAL',
