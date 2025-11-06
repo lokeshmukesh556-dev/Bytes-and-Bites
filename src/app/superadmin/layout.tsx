@@ -15,6 +15,7 @@ import {
   Users,
   DollarSign,
   Briefcase,
+  ClipboardList,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -44,7 +45,46 @@ export default function SuperAdminLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {/* Sidebar items removed as per request */}
+             <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                    <Link href="/superadmin/dashboard">
+                        <LayoutDashboard />
+                        Global Dashboard
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                    <Link href="/superadmin/orders">
+                        <ClipboardList />
+                        Scan Orders
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                    <Link href="/superadmin/canteens">
+                        <Building />
+                        Canteens
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                    <Link href="/superadmin/users">
+                        <Users />
+                        Users
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                    <Link href="/superadmin/revenue">
+                        <DollarSign />
+                        Revenue
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
       </Sidebar>

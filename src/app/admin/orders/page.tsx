@@ -24,14 +24,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, QrCode } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { MoreHorizontal } from 'lucide-react';
+import { useState } from 'react';
 import { OrderDetailsDialog } from '@/components/admin/order-details-dialog';
-import { useCollection, useFirestore, useUser, WithId } from '@/firebase';
-import { collection, collectionGroup, doc, query, updateDoc } from 'firebase/firestore';
+import { useCollection, useFirestore, WithId } from '@/firebase';
+import { collectionGroup, doc, query, updateDoc } from 'firebase/firestore';
 import { useMemoFirebase } from '@/firebase/provider';
-import { QrScannerDialog } from '@/components/admin/qr-scanner-dialog';
-import { useToast } from '@/hooks/use-toast';
 
 // Matches the Order entity in backend.json
 export interface OrderData {
@@ -63,7 +61,6 @@ function getBadgeVariant(
 
 export default function AdminOrdersPage() {
   const firestore = useFirestore();
-  const { toast } = useToast();
   const ordersQuery = useMemoFirebase(() => {
     return firestore ? query(collectionGroup(firestore, 'orders')) : null;
   }, [firestore]);
@@ -72,12 +69,6 @@ export default function AdminOrdersPage() {
 
   const [selectedOrder, setSelectedOrder] = useState<OrderWithId | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
-
-  const ordersMap = useMemo(() => {
-    if (!orders) return new Map();
-    return new Map(orders.map(order => [order.id, order]));
-  }, [orders]);
 
   const handleViewDetails = (order: OrderWithId) => {
     setSelectedOrder(order);
@@ -90,45 +81,14 @@ export default function AdminOrdersPage() {
     updateDoc(orderRef, { status: status });
   }
 
-  const handleScanResult = (result: string) => {
-    setIsScannerOpen(false);
-    const scannedOrder = ordersMap.get(result);
-
-    if (scannedOrder) {
-        if (scannedOrder.status === 'Completed') {
-            toast({
-                variant: 'destructive',
-                title: 'Order Already Served',
-                description: `This order (${result}) has already been marked as completed.`,
-            });
-        } else {
-            setSelectedOrder(scannedOrder);
-            setIsDetailsDialogOpen(true);
-        }
-    } else {
-         toast({
-            variant: 'destructive',
-            title: 'Order Not Found',
-            description: `Could not find an order with the ID: ${result}`,
-        });
-    }
-  }
-
-
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-            <div>
+        <CardHeader>
           <CardTitle>Incoming Orders</CardTitle>
           <CardDescription>
             Manage and track all customer orders.
           </CardDescription>
-          </div>
-           <Button onClick={() => setIsScannerOpen(true)}>
-                <QrCode className="mr-2 h-4 w-4" />
-                Scan Order QR
-            </Button>
         </CardHeader>
         <CardContent>
           <Table>
@@ -199,11 +159,6 @@ export default function AdminOrdersPage() {
           onMarkCompleted={() => handleUpdateStatus(selectedOrder.id, selectedOrder.userId, 'Completed')}
         />
       )}
-      <QrScannerDialog 
-        isOpen={isScannerOpen}
-        onOpenChange={setIsScannerOpen}
-        onResult={handleScanResult}
-      />
     </>
   );
 }
