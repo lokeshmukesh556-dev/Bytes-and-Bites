@@ -24,6 +24,7 @@ import {
   useAuth,
   useUser,
   initiateEmailSignIn,
+  initiateEmailSignUp,
 } from '@/firebase';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -40,6 +41,8 @@ export default function LoginPage() {
   const [customerPassword, setCustomerPassword] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [signUpEmail, setSignUpEmail] = useState('');
+  const [signUpPassword, setSignUpPassword] = useState('');
 
   useEffect(() => {
     // This effect handles automatic redirection if the user is already logged in.
@@ -79,6 +82,12 @@ export default function LoginPage() {
     }
   };
 
+  const handleCustomerSignUp = () => {
+    if (auth) {
+      initiateEmailSignUp(auth, signUpEmail, signUpPassword);
+    }
+  };
+
   if (isUserLoading || (user && !user.isAnonymous)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -106,41 +115,86 @@ export default function LoginPage() {
             <TabsTrigger value="superadmin">food court</TabsTrigger>
           </TabsList>
           <TabsContent value="customer">
-            <Card>
+            <Tabs defaultValue="login" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="login">Login</TabsTrigger>
+                    <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                </TabsList>
+                <TabsContent value="login">
+                    <Card>
+                    <CardHeader>
+                        <CardTitle>Customer Login</CardTitle>
+                        <CardDescription>
+                        Enter your credentials to order your meal.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                        <Label htmlFor="customer-email">Email</Label>
+                        <Input
+                            id="customer-email"
+                            type="email"
+                            placeholder="user@example.com"
+                            value={customerEmail}
+                            onChange={(e) => setCustomerEmail(e.target.value)}
+                        />
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="customer-password">Password</Label>
+                        <Input
+                            id="customer-password"
+                            type="password"
+                            value={customerPassword}
+                            onChange={(e) => setCustomerPassword(e.target.value)}
+                        />
+                        </div>
+                        <Button
+                        onClick={handleCustomerLogin}
+                        className="w-full bg-primary hover:bg-primary/90"
+                        >
+                        Login
+                        </Button>
+                    </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="signup">
+                <Card>
               <CardHeader>
-                <CardTitle>Customer Login</CardTitle>
+                <CardTitle>Create Account</CardTitle>
                 <CardDescription>
-                  Enter your credentials to order your meal.
+                  Sign up to start ordering.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="customer-email">Email</Label>
+                  <Label htmlFor="signup-email">Email</Label>
                   <Input
-                    id="customer-email"
+                    id="signup-email"
                     type="email"
                     placeholder="user@example.com"
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
+                    value={signUpEmail}
+                    onChange={(e) => setSignUpEmail(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="customer-password">Password</Label>
+                  <Label htmlFor="signup-password">Password</Label>
                   <Input
-                    id="customer-password"
+                    id="signup-password"
                     type="password"
-                    value={customerPassword}
-                    onChange={(e) => setCustomerPassword(e.target.value)}
+                    value={signUpPassword}
+                    onChange={(e) => setSignUpPassword(e.target.value)}
                   />
                 </div>
                 <Button
-                  onClick={handleCustomerLogin}
+                  onClick={handleCustomerSignUp}
                   className="w-full bg-primary hover:bg-primary/90"
                 >
-                  Login
+                  Create Account
                 </Button>
               </CardContent>
             </Card>
+                </TabsContent>
+            </Tabs>
           </TabsContent>
           <TabsContent value="admin">
             <Card>
@@ -186,7 +240,7 @@ export default function LoginPage() {
                 <CardDescription>
                   Access the application's global data.
                 </CardDescription>
-              </CardHeader>
+              </Header>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="superadmin-email">Email</Label>
