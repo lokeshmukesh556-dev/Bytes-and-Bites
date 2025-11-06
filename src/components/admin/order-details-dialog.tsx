@@ -45,7 +45,7 @@ interface OrderDetailsDialogProps {
   order: OrderWithId;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onMarkCompleted: () => void;
+  onMarkCompleted?: () => void;
 }
 
 function OrderItemsTable({ order }: { order: OrderWithId }) {
@@ -118,7 +118,9 @@ export function OrderDetailsDialog({
   const subtotal = order.totalAmount - order.convenienceFee;
 
   const handleMarkAndClose = () => {
-    onMarkCompleted();
+    if (onMarkCompleted) {
+        onMarkCompleted();
+    }
     onOpenChange(false);
   }
 
@@ -175,7 +177,7 @@ export function OrderDetailsDialog({
         </div>
         <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
-            {order.status !== 'Completed' && (
+            {onMarkCompleted && order.status !== 'Completed' && (
                  <Button onClick={handleMarkAndClose}>
                     <CheckCircle className="mr-2 h-4 w-4" />
                     Mark as Served & Close

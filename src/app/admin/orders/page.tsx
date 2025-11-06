@@ -156,7 +156,6 @@ export default function AdminOrdersPage() {
           order={selectedOrder}
           isOpen={isDetailsDialogOpen}
           onOpenChange={setIsDetailsDialogOpen}
-          onMarkCompleted={() => handleUpdateStatus(selectedOrder.id, selectedOrder.userId, 'Completed')}
         />
       )}
     </>

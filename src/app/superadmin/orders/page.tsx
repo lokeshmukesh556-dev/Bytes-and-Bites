@@ -56,6 +56,7 @@ export default function SuperAdminOrdersPage() {
                 title: 'Order Already Served',
                 description: `This order (${result}) has already been marked as completed.`,
             });
+            // Do not open the dialog if already completed
         } else {
             setSelectedOrder(scannedOrder);
             setIsDetailsDialogOpen(true);
@@ -81,9 +82,12 @@ export default function SuperAdminOrdersPage() {
         </CardHeader>
         <CardContent className="flex flex-col items-center justify-center text-center gap-6 p-12">
             <QrCode className="size-16 text-muted-foreground" />
-            <p>
-                Click the button below to open the camera and scan an order QR code.
-            </p>
+             <Alert>
+                <AlertTitle>Centralized Order Fulfillment</AlertTitle>
+                <AlertDescription>
+                    Use this page at the central food court counter to scan any customer QR code, view their order, and mark it as served.
+                </AlertDescription>
+            </Alert>
            <Button onClick={() => setIsScannerOpen(true)}>
                 <QrCode className="mr-2 h-4 w-4" />
                 Scan Order QR
