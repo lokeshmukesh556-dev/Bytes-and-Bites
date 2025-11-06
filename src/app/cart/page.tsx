@@ -190,23 +190,18 @@ export default function CartPage() {
                       apiVersionMinor: 0,
                       allowedPaymentMethods: [
                         {
-                          type: 'CARD',
+                          type: 'UPI',
                           parameters: {
-                            allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-                            allowedCardNetworks: ['MASTERCARD', 'VISA'],
-                          },
-                          tokenizationSpecification: {
-                            type: 'PAYMENT_GATEWAY',
-                            parameters: {
-                              gateway: 'example',
-                              gatewayMerchantId: 'exampleGatewayMerchantId',
-                            },
+                            payeeVpa: '9940918442@upi',
+                            payeeName: 'Violet Bites',
+                            mcc: '5812',
+                            transactionReferenceNumber: 'VIOLETBITES-TXN'
                           },
                         },
                       ],
                       merchantInfo: {
                         merchantName: 'Violet Bites',
-                        merchantId: 'BCR2DN6T6N44EPIB',
+                        merchantId: 'BCR2DN6T6N44EPIB', // Use a real merchant ID in production
                       },
                       transactionInfo: {
                         totalPriceStatus: 'FINAL',
