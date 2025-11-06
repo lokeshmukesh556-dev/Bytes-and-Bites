@@ -25,10 +25,23 @@ import {
   useUser,
   initiateEmailSignIn,
   initiateEmailSignUp,
+  sendPasswordReset,
 } from '@/firebase';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { Eye, EyeOff } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -36,27 +49,25 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // State to toggle between login and sign-up for customers
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
-  // States for form inputs
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [signUpEmail, setSignUpEmail] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
 
   useEffect(() => {
-    // This effect handles automatic redirection if the user is already logged in.
     if (user && !user.isAnonymous) {
-      // You might want to differentiate redirection based on user role here in the future
       router.push('/menu');
     }
   }, [user, router]);
 
   useEffect(() => {
-    // This handles the initial anonymous sign-in for guest users or after logout.
     if (auth && !user && !isUserLoading) {
       initiateAnonymousSignIn(auth);
     }
@@ -65,7 +76,6 @@ export default function LoginPage() {
   const handleCustomerLogin = () => {
     if (auth) {
       initiateEmailSignIn(auth, customerEmail, customerPassword);
-      // onAuthStateChanged will handle the redirect on successful login
     }
   };
 
@@ -74,7 +84,6 @@ export default function LoginPage() {
       adminEmail === 'watson777@gmail.com' &&
       adminPassword === 'watson777'
     ) {
-      // In a real app, you would handle proper Firebase Auth for admins here.
       router.push('/admin/dashboard');
     } else {
       toast({
@@ -91,6 +100,24 @@ export default function LoginPage() {
     }
   };
 
+  const handlePasswordReset = () => {
+    if (auth && resetEmail) {
+      sendPasswordReset(auth, resetEmail);
+      toast({
+        title: 'Password Reset Email Sent',
+        description: `If an account exists for ${resetEmail}, you will receive an email with instructions.`,
+      });
+      setIsResetDialogOpen(false);
+      setResetEmail('');
+    } else {
+       toast({
+        variant: 'destructive',
+        title: 'Email Required',
+        description: 'Please enter your email address to reset your password.',
+      });
+    }
+  };
+
   if (isUserLoading || (user && !user.isAnonymous)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -99,187 +126,275 @@ export default function LoginPage() {
     );
   }
 
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
+
   return (
-    <main className="flex items-center justify-center min-h-screen bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-primary font-headline">
-            Violet Bites
-          </h1>
-          <p className="text-muted-foreground">
-            Your campus canteen, just a click away.
-          </p>
-        </div>
-        <Tabs defaultValue="customer" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="customer">Customer</TabsTrigger>
-            <TabsTrigger value="admin">Canteen</TabsTrigger>
-            <TabsTrigger value="superadmin">food court</TabsTrigger>
-          </TabsList>
-          <TabsContent value="customer">
-            <Card>
-              {isSigningUp ? (
-                <>
-                  <CardHeader>
-                    <CardTitle>Create Account</CardTitle>
-                    <CardDescription>
-                      Sign up to start ordering.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">Email</Label>
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="user@example.com"
-                        value={signUpEmail}
-                        onChange={(e) => setSignUpEmail(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password">Password</Label>
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        value={signUpPassword}
-                        onChange={(e) => setSignUpPassword(e.target.value)}
-                      />
-                    </div>
-                    <Button
-                      onClick={handleCustomerSignUp}
-                      className="w-full bg-primary hover:bg-primary/90"
-                    >
-                      Create Account
-                    </Button>
-                    <p className="text-center text-sm">
-                      Already have an account?{' '}
-                      <button
-                        onClick={() => setIsSigningUp(false)}
-                        className="font-medium text-primary hover:underline"
+    <>
+      <main className="flex items-center justify-center min-h-screen bg-background p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-primary font-headline">
+              Violet Bites
+            </h1>
+            <p className="text-muted-foreground">
+              Your campus canteen, just a click away.
+            </p>
+          </div>
+          <Tabs defaultValue="customer" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="customer">Customer</TabsTrigger>
+              <TabsTrigger value="admin">Canteen</TabsTrigger>
+              <TabsTrigger value="superadmin">food court</TabsTrigger>
+            </TabsList>
+            <TabsContent value="customer">
+              <Card>
+                {isSigningUp ? (
+                  <>
+                    <CardHeader>
+                      <CardTitle>Create Account</CardTitle>
+                      <CardDescription>
+                        Sign up to start ordering.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-email">Email</Label>
+                        <Input
+                          id="signup-email"
+                          type="email"
+                          placeholder="user@example.com"
+                          value={signUpEmail}
+                          onChange={(e) => setSignUpEmail(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2 relative">
+                        <Label htmlFor="signup-password">Password</Label>
+                        <Input
+                          id="signup-password"
+                          type={showPassword ? 'text' : 'password'}
+                          value={signUpPassword}
+                          onChange={(e) => setSignUpPassword(e.target.value)}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute bottom-1 right-1 h-7 w-7"
+                          onClick={togglePasswordVisibility}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <Button
+                        onClick={handleCustomerSignUp}
+                        className="w-full bg-primary hover:bg-primary/90"
+                      >
+                        Create Account
+                      </Button>
+                      <p className="text-center text-sm">
+                        Already have an account?{' '}
+                        <button
+                          onClick={() => setIsSigningUp(false)}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          Login
+                        </button>
+                      </p>
+                    </CardContent>
+                  </>
+                ) : (
+                  <>
+                    <CardHeader>
+                      <CardTitle>Customer Login</CardTitle>
+                      <CardDescription>
+                        Enter your credentials to order your meal.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="customer-email">Email</Label>
+                        <Input
+                          id="customer-email"
+                          type="email"
+                          placeholder="user@example.com"
+                          value={customerEmail}
+                          onChange={(e) => setCustomerEmail(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2 relative">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="customer-password">Password</Label>
+                          <AlertDialogTrigger asChild>
+                             <button
+                                className="text-xs font-medium text-primary hover:underline"
+                                onClick={() => {
+                                  setResetEmail(customerEmail);
+                                  setIsResetDialogOpen(true);
+                                }}
+                              >
+                                Forgot Password?
+                              </button>
+                          </AlertDialogTrigger>
+                        </div>
+
+                        <Input
+                          id="customer-password"
+                          type={showPassword ? 'text' : 'password'}
+                          value={customerPassword}
+                          onChange={(e) =>
+                            setCustomerPassword(e.target.value)
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute bottom-1 right-1 h-7 w-7"
+                          onClick={togglePasswordVisibility}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <Button
+                        onClick={handleCustomerLogin}
+                        className="w-full bg-primary hover:bg-primary/90"
                       >
                         Login
-                      </button>
-                    </p>
-                  </CardContent>
-                </>
-              ) : (
-                <>
-                  <CardHeader>
-                    <CardTitle>Customer Login</CardTitle>
-                    <CardDescription>
-                      Enter your credentials to order your meal.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="customer-email">Email</Label>
-                      <Input
-                        id="customer-email"
-                        type="email"
-                        placeholder="user@example.com"
-                        value={customerEmail}
-                        onChange={(e) => setCustomerEmail(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="customer-password">Password</Label>
-                      <Input
-                        id="customer-password"
-                        type="password"
-                        value={customerPassword}
-                        onChange={(e) => setCustomerPassword(e.target.value)}
-                      />
-                    </div>
+                      </Button>
+                      <p className="text-center text-sm">
+                        Don't have an account?{' '}
+                        <button
+                          onClick={() => setIsSigningUp(true)}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          Sign up
+                        </button>
+                      </p>
+                    </CardContent>
+                  </>
+                )}
+              </Card>
+            </TabsContent>
+            <TabsContent value="admin">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Canteen Admin Login</CardTitle>
+                  <CardDescription>
+                    Access the canteen management dashboard.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="admin-email">Email</Label>
+                    <Input
+                      id="admin-email"
+                      type="email"
+                      placeholder="admin@canteen.com"
+                      value={adminEmail}
+                      onChange={(e) => setAdminEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 relative">
+                    <Label htmlFor="admin-password">Password</Label>
+                    <Input
+                      id="admin-password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                    />
                     <Button
-                      onClick={handleCustomerLogin}
-                      className="w-full bg-primary hover:bg-primary/90"
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute bottom-1 right-1 h-7 w-7"
+                      onClick={togglePasswordVisibility}
                     >
-                      Login
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </Button>
-                     <p className="text-center text-sm">
-                      Don't have an account?{' '}
-                      <button
-                        onClick={() => setIsSigningUp(true)}
-                        className="font-medium text-primary hover:underline"
-                      >
-                        Sign up
-                      </button>
-                    </p>
-                  </CardContent>
-                </>
-              )}
-            </Card>
-          </TabsContent>
-          <TabsContent value="admin">
-            <Card>
-              <CardHeader>
-                <CardTitle>Canteen Admin Login</CardTitle>
-                <CardDescription>
-                  Access the canteen management dashboard.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="admin-email">Email</Label>
-                  <Input
-                    id="admin-email"
-                    type="email"
-                    placeholder="admin@canteen.com"
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="admin-password">Password</Label>
-                  <Input
-                    id="admin-password"
-                    type="password"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                  />
-                </div>
-                <Button
-                  onClick={handleAdminLogin}
-                  className="w-full bg-primary hover:bg-primary/90"
-                >
-                  Login
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="superadmin">
-            <Card>
-              <CardHeader>
-                <CardTitle>Food Court Admin Login</CardTitle>
-                <CardDescription>
-                  Access the application's global data.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="superadmin-email">Email</Label>
-                  <Input
-                    id="superadmin-email"
-                    type="email"
-                    placeholder="super@violetbites.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="superadmin-password">Password</Label>
-                  <Input id="superadmin-password" type="password" />
-                </div>
-                <Button
-                  asChild
-                  className="w-full bg-primary hover:bg-primary/90"
-                >
-                  <Link href="/superadmin/dashboard">Login</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </main>
+                  </div>
+                  <Button
+                    onClick={handleAdminLogin}
+                    className="w-full bg-primary hover:bg-primary/90"
+                  >
+                    Login
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="superadmin">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Food Court Admin Login</CardTitle>
+                  <CardDescription>
+                    Access the application's global data.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="superadmin-email">Email</Label>
+                    <Input
+                      id="superadmin-email"
+                      type="email"
+                      placeholder="super@violetbites.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="superadmin-password">Password</Label>
+                    <Input id="superadmin-password" type="password" />
+                  </div>
+                  <Button
+                    asChild
+                    className="w-full bg-primary hover:bg-primary/90"
+                  >
+                    <Link href="/superadmin/dashboard">Login</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
+      <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Your Password</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter your email address below and we'll send you a link to reset
+              your password.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="reset-email">Email</Label>
+            <Input
+              id="reset-email"
+              type="email"
+              placeholder="user@example.com"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePasswordReset}>
+              Send Reset Link
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
+
+    

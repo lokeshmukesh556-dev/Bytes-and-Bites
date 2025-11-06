@@ -1,9 +1,11 @@
+
 'use client';
 import {
   Auth, // Import Auth type for type hinting
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   AuthError
 } from 'firebase/auth';
 import { errorEmitter } from './error-emitter';
@@ -31,3 +33,13 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
       errorEmitter.emit('auth-error', error);
     });
 }
+
+/** Initiate a password reset email (non-blocking). */
+export function sendPasswordReset(authInstance: Auth, email: string): void {
+    sendPasswordResetEmail(authInstance, email)
+        .catch((error: AuthError) => {
+            errorEmitter.emit('auth-error', error);
+        });
+}
+
+    
