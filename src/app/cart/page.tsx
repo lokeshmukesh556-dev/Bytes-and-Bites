@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AppHeader } from '@/components/shared/header';
@@ -201,15 +202,6 @@ export default function CartPage() {
                               gateway: 'example',
                               gatewayMerchantId: 'exampleGatewayMerchantId',
                             },
-                          },
-                        },
-                        {
-                          type: 'UPI',
-                          parameters: {
-                            payeeVpa: '9940918442@upi',
-                            payeeName: 'Violet Bites',
-                            mcc: '5812',
-                            transactionReferenceNumber: 'VIOLETBITES-TXN'
                           },
                         },
                       ],
