@@ -1,7 +1,9 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
 import { useMenu, type MenuItemWithId } from './MenuContext';
+import { useToast } from '@/hooks/use-toast';
 
 // The base item in the cart only needs to store what is unique to the cart.
 export interface CartItemBase {
@@ -30,12 +32,15 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItemBases, setCartItemBases] = useState<CartItemBase[]>([]);
   const { menuItems, isLoading: isMenuLoading } = useMenu();
+  const { toast } = useToast();
+
+  const menuItemsById = useMemo(() => {
+    if (isMenuLoading) return new Map();
+    return new Map(menuItems.map((item) => [item.id, item]));
+  }, [menuItems, isMenuLoading]);
+
 
   const cartItems = useMemo((): CartItem[] => {
-    if (isMenuLoading) return [];
-
-    const menuItemsById = new Map(menuItems.map(item => [item.id, item]));
-
     return cartItemBases.map(cartBase => {
         const menuItem = menuItemsById.get(cartBase.id);
         // If a menu item is deleted by an admin while it's in a cart, it will be filtered out here.
@@ -47,12 +52,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
         };
       })
       .filter((item): item is CartItem => item !== null);
-  }, [cartItemBases, menuItems, isMenuLoading]);
+  }, [cartItemBases, menuItemsById]);
 
 
   const addToCart = (itemId: string) => {
+    const menuItem = menuItemsById.get(itemId);
+    if (!menuItem) return;
+
     setCartItemBases((prevItems) => {
       const existingItem = prevItems.find((i) => i.id === itemId);
+      const currentQuantity = existingItem?.quantity || 0;
+
+      if (currentQuantity >= menuItem.stock) {
+        toast({
+          variant: 'destructive',
+          title: 'Stock Limit Reached',
+          description: `You cannot add more of ${menuItem.name}.`,
+        });
+        return prevItems; // Return original items without change
+      }
+      
       if (existingItem) {
         return prevItems.map((i) =>
           i.id === itemId ? { ...i, quantity: i.quantity + 1 } : i
@@ -67,11 +86,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQuantity = (itemId: string, change: number) => {
+    const menuItem = menuItemsById.get(itemId);
+    if (!menuItem) return;
+
     setCartItemBases((prevItems) =>
       prevItems
         .map((item) => {
           if (item.id === itemId) {
             const newQuantity = item.quantity + change;
+             if (change > 0 && newQuantity > menuItem.stock) {
+              toast({
+                variant: 'destructive',
+                title: 'Stock Limit Reached',
+                description: `Only ${menuItem.stock} of ${menuItem.name} available.`,
+              });
+              return item; // Return original item without change
+            }
             return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
           }
           return item;
