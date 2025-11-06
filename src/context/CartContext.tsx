@@ -89,26 +89,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const menuItem = menuItemsById.get(itemId);
     if (!menuItem) return;
 
-    setCartItemBases((prevItems) =>
-      prevItems
-        .map((item) => {
-          if (item.id === itemId) {
-            const newQuantity = item.quantity + change;
-             if (change > 0 && newQuantity > menuItem.stock) {
-              toast({
-                variant: 'destructive',
-                title: 'Stock Limit Reached',
-                description: `Only ${menuItem.stock} of ${menuItem.name} available.`,
-              });
-              return item; // Return original item without change
-            }
-            return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
-          }
-          return item;
-        })
-        .filter((item): item is CartItemBase => item !== null)
-    );
-  };
+    const existingItem = cartItems.find(i => i.id === itemId);
+    if (!existingItem) return;
+
+    const newQuantity = existingItem.quantity + change;
+    
+    if (change > 0 && newQuantity > menuItem.stock) {
+        toast({
+            variant: 'destructive',
+            title: 'Stock Limit Reached',
+            description: `Only ${menuItem.stock} of ${menuItem.name} available.`,
+        });
+        return; // Exit without changing state
+    }
+
+    setCartItemBases(prevItems => {
+        if (newQuantity > 0) {
+            return prevItems.map(item =>
+                item.id === itemId ? { ...item, quantity: newQuantity } : item
+            );
+        } else {
+            return prevItems.filter(item => item.id !== itemId);
+        }
+    });
+};
   
   const clearCart = () => {
     setCartItemBases([]);
