@@ -21,7 +21,7 @@ import { useFirestore, useUser } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import GooglePayButton from '@google-pay/button-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -39,6 +39,12 @@ export default function CartPage() {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const isMobile = useIsMobile();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    // This ensures the component only renders the GPay button on the client
+    setIsClient(true);
+  }, []);
 
   const handleProceedToPayment = async () => {
     if (!user || !firestore || cartItems.length === 0) return;
@@ -81,18 +87,16 @@ export default function CartPage() {
       await Promise.all(orderItemsPromises);
       
       // 3. Navigate to confirmation page
-      // The cart will be cleared on the confirmation page itself.
       router.push(`/order-confirmation/${newOrderRef.id}`);
 
     } catch (error) {
       console.error('Error creating order:', error);
-      // You could show a toast message to the user here
       setIsProcessing(false);
     }
   };
 
   const paymentRequest = useMemo(() => {
-    const baseRequest: google.payments.api.PaymentDataRequest = {
+    const baseRequest: Omit<google.payments.api.PaymentDataRequest, 'allowedPaymentMethods'> = {
         apiVersion: 2,
         apiVersionMinor: 0,
         merchantInfo: {
@@ -117,9 +121,9 @@ export default function CartPage() {
                     type: 'UPI',
                     parameters: {
                         payeeVpa: '9940918442@upi',
-                        payeeName: 'Violet Bites', // Or the registered name for the VPA
+                        payeeName: 'Violet Bites', 
                     },
-                    tokenizationSpecification: {
+                     tokenizationSpecification: {
                         type: 'PAYMENT_GATEWAY',
                         parameters: {
                             gateway: 'example',
@@ -247,7 +251,7 @@ export default function CartPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                {cartItems.length > 0 && (
+                {isClient && cartItems.length > 0 && (
                   <GooglePayButton
                     environment="TEST"
                     paymentRequest={paymentRequest}
