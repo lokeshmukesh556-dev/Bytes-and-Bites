@@ -59,8 +59,11 @@ export default function MenuManagementPage() {
     id?: string
   ) => {
     const { imageFile, ...restData } = itemData;
-    let imageUrl = editingItem?.imageUrl || '';
-    let imageHint = editingItem?.imageHint || 'food';
+
+    let dataToSave: Partial<MenuItemData> = {
+      ...restData,
+      description: restData.description || '', // Ensure description is always a string
+    };
 
     if (imageFile) {
       const storage = getStorage(firebaseApp);
@@ -69,25 +72,28 @@ export default function MenuManagementPage() {
         `menu_items/${Date.now()}_${imageFile.name}`
       );
       const snapshot = await uploadBytes(storageRef, imageFile);
-      imageUrl = await getDownloadURL(snapshot.ref);
+      dataToSave.imageUrl = await getDownloadURL(snapshot.ref);
+      // For simplicity, we're not generating a new AI hint for uploaded images
     } else if (!id) {
       // If it's a new item without an image, use a placeholder
       const randomSeed = Math.floor(Math.random() * 1000);
-      imageUrl = `https://picsum.photos/seed/${randomSeed}/600/400`;
-      imageHint = 'food placeholder';
+      dataToSave.imageUrl = `https://picsum.photos/seed/${randomSeed}/600/400`;
+      dataToSave.imageHint = 'food placeholder';
     }
 
-    const finalItemData: MenuItemData = {
-      ...restData,
-      description: restData.description || '', // Ensure description is always a string
-      imageUrl,
-      imageHint,
-    };
-
     if (id) {
-      updateMenuItem(id, finalItemData);
+      updateMenuItem(id, dataToSave);
     } else {
-      addMenuItem(finalItemData);
+      // For a new item, we need to ensure all fields for MenuItemData are present
+      const finalNewItemData: MenuItemData = {
+        name: dataToSave.name!,
+        price: dataToSave.price!,
+        category: dataToSave.category!,
+        description: dataToSave.description!,
+        imageUrl: dataToSave.imageUrl || `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/600/400`,
+        imageHint: dataToSave.imageHint || 'food placeholder',
+      };
+      addMenuItem(finalNewItemData);
     }
     handleCloseDialog();
   };
