@@ -20,7 +20,6 @@ import {
   addDocumentNonBlocking,
   updateDocumentNonBlocking,
   deleteDocumentNonBlocking,
-  setDocumentNonBlocking,
 } from '@/firebase/non-blocking-updates';
 import { useMemoFirebase } from '@/firebase/provider';
 
@@ -90,8 +89,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
   const updateMenuItem = (id: string, updatedItem: Partial<MenuItemData>) => {
     if (!firestore) return;
     const docRef = doc(firestore, 'menu_items', id);
-    // Explicitly pass { merge: true } to prevent overwriting the document
-    setDocumentNonBlocking(docRef, updatedItem, { merge: true });
+    updateDocumentNonBlocking(docRef, updatedItem);
   };
 
   const deleteMenuItem = (itemId: string) => {

@@ -58,48 +58,58 @@ export default function MenuManagementPage() {
     },
     id?: string
   ) => {
+    handleCloseDialog();
     const { imageFile, ...restData } = itemData;
-  
-    let imageUrl: string | undefined = undefined;
+
+    let newImageUrl: string | undefined;
     if (imageFile) {
       try {
         const storage = getStorage(firebaseApp);
-        const storageRef = ref(storage, `menu_items/${Date.now()}_${imageFile.name}`);
+        const storageRef = ref(
+          storage,
+          `menu_items/${Date.now()}_${imageFile.name}`
+        );
         const snapshot = await uploadBytes(storageRef, imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
+        newImageUrl = await getDownloadURL(snapshot.ref);
       } catch (error) {
-        console.error("Error uploading image:", error);
-        // Optionally, show a toast to the user
-        return; // Stop execution if image upload fails
+        console.error('Error uploading image:', error);
+        // Optionally show a toast to the user
+        return;
       }
     }
-  
+
     if (id) {
       // Logic for updating an existing item
+      const originalItem = menuItems.find((item) => item.id === id);
       const dataToUpdate: Partial<MenuItemData> = {
         ...restData,
         description: restData.description || '',
       };
-      if (imageUrl) {
-        dataToUpdate.imageUrl = imageUrl;
+
+      if (newImageUrl) {
+        dataToUpdate.imageUrl = newImageUrl;
       }
+
+      // If no new image is uploaded, the existing imageUrl is preserved because we don't add it to the update object.
       updateMenuItem(id, dataToUpdate);
     } else {
       // Logic for adding a new item
+      const imageUrl =
+        newImageUrl ||
+        `https://picsum.photos/seed/${Math.floor(
+          Math.random() * 1000
+        )}/600/400`;
+
       const finalNewItemData: MenuItemData = {
         name: restData.name,
         price: restData.price,
         category: restData.category,
         description: restData.description || '',
-        imageUrl:
-          imageUrl ||
-          `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/600/400`,
+        imageUrl: imageUrl,
         imageHint: 'food placeholder',
       };
       addMenuItem(finalNewItemData);
     }
-  
-    handleCloseDialog();
   };
 
   const handleDeleteItem = (itemId: string) => {

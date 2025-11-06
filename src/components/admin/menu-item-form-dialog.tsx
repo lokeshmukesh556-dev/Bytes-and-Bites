@@ -46,7 +46,7 @@ interface MenuItemFormDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onSave: (
-    item: Omit<MenuItemFormValues, 'imageFile'> & { imageFile?: File, description: string },
+    item: Omit<MenuItemFormValues, 'imageFile'> & { imageFile?: File },
     id?: string
   ) => void;
   item: MenuItemWithId | null;
@@ -71,50 +71,45 @@ export function MenuItemFormDialog({
   const imageFileRef = form.register('imageFile');
 
   useEffect(() => {
-    if (item) {
-      form.reset({
-        name: item.name,
-        description: item.description || '',
-        price: item.price,
-        category: item.category,
-      });
-    } else {
-      form.reset({
-        name: '',
-        description: '',
-        price: 0,
-        category: 'meal',
-        imageFile: undefined,
-      });
+    // Only reset form when the dialog opens with a new item or for a new entry.
+    if (isOpen) {
+      if (item) {
+        form.reset({
+          name: item.name,
+          description: item.description || '',
+          price: item.price,
+          category: item.category,
+        });
+      } else {
+        form.reset({
+          name: '',
+          description: '',
+          price: 0,
+          category: 'meal',
+          imageFile: undefined,
+        });
+      }
     }
-  }, [item, form, isOpen]);
+  }, [item, isOpen, form]);
 
   const onSubmit = (values: MenuItemFormValues) => {
     const dataToSave: Omit<MenuItemFormValues, 'imageFile'> & {
       imageFile?: File;
-      description: string;
     } = {
       ...values,
-      description: values.description || '',
     };
 
     if (values.imageFile && values.imageFile.length > 0) {
       dataToSave.imageFile = values.imageFile[0];
+    } else {
+      delete dataToSave.imageFile;
     }
 
     onSave(dataToSave, item?.id);
-    onOpenChange(false);
-  };
-
-  const handleDialogClose = (open: boolean) => {
-    if (!open) {
-      form.reset();
-    }
-    onOpenChange(open);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleDialogClose}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
@@ -214,7 +209,7 @@ export function MenuItemFormDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => handleDialogClose(false)}
+                onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
