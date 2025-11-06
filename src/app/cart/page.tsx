@@ -19,11 +19,12 @@ import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useFirestore, useUser } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection } from 'firebase/firestore';
+import { collection, doc, runTransaction } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useState, useMemo, useEffect } from 'react';
 import GooglePayButton from '@google-pay/button-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CartPage() {
   const {
@@ -37,6 +38,7 @@ export default function CartPage() {
   const firestore = useFirestore();
   const { user } = useUser();
   const router = useRouter();
+  const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const isMobile = useIsMobile();
   const [isClient, setIsClient] = useState(false);
@@ -68,29 +70,50 @@ export default function CartPage() {
         throw new Error('Failed to create order document.');
       }
 
-      // 2. Create OrderItem documents in the subcollection
-      const orderItemsPromises = cartItems.map((item) =>
-        addDocumentNonBlocking(
-          collection(
-            firestore,
-            `users/${user.uid}/orders/${newOrderRef.id}/order_items`
-          ),
-          {
+      // 2. Create OrderItem documents and update stock in a transaction
+      await runTransaction(firestore, async (transaction) => {
+        const orderItemsPromises = cartItems.map(async (item) => {
+          // Add item to the order's subcollection
+          const newOrderItemRef = doc(collection(firestore, `users/${user.uid}/orders/${newOrderRef.id}/order_items`));
+          transaction.set(newOrderItemRef, {
             orderId: newOrderRef.id,
             menuItemId: item.id,
             quantity: item.quantity,
             price: item.price,
-          }
-        )
-      );
+          });
 
-      await Promise.all(orderItemsPromises);
+          // Decrease the stock for the menu item
+          const menuItemRef = doc(firestore, 'menu_items', item.id);
+          const menuItemDoc = await transaction.get(menuItemRef);
+          if (!menuItemDoc.exists()) {
+            throw `Menu item ${item.name} not found!`;
+          }
+
+          const currentStock = menuItemDoc.data().stock;
+          const newStock = currentStock - item.quantity;
+          
+          if (newStock < 0) {
+            throw `Not enough stock for ${item.name}. Only ${currentStock} left.`;
+          }
+
+          transaction.update(menuItemRef, { stock: newStock });
+        });
+        
+        // This won't actually run them in parallel inside a transaction,
+        // but it's a clean way to structure the logic.
+        await Promise.all(orderItemsPromises);
+      });
       
       // 3. Navigate to confirmation page
       router.push(`/order-confirmation/${newOrderRef.id}`);
 
-    } catch (error) {
-      console.error('Error creating order:', error);
+    } catch (error: any) {
+      console.error('Error creating order and updating stock:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Order Failed',
+        description: error.message || 'Could not place your order. Please try again.',
+      });
       setIsProcessing(false);
     }
   };
