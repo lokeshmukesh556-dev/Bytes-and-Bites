@@ -2,12 +2,16 @@ import Link from 'next/link';
 import { ShoppingCart, UtensilsCrossed, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/firebase';
+import { useRouter } from 'next/navigation';
 
 export function AppHeader() {
   const auth = useAuth();
+  const router = useRouter();
   const handleLogout = () => {
     if (auth) {
-      auth.signOut();
+      auth.signOut().then(() => {
+        router.push('/');
+      });
     }
   };
 

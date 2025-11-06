@@ -50,7 +50,7 @@ export default function LoginPage() {
   }, [user, router]);
 
   useEffect(() => {
-    // This handles the initial anonymous sign-in for guest users.
+    // This handles the initial anonymous sign-in for guest users or after logout.
     if (auth && !user && !isUserLoading) {
       initiateAnonymousSignIn(auth);
     }
@@ -67,18 +67,17 @@ export default function LoginPage() {
     // For now, we will just navigate.
     // In a real app, you would handle email/password login here.
     // We assume admin role is pre-assigned in Firebase Console.
-    if (user) {
-      router.push('/admin/dashboard');
-    }
+    router.push('/admin/dashboard');
   };
 
-  if (isUserLoading) {
+  if (isUserLoading || user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Loading...</p>
       </div>
     );
   }
+
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-background p-4">
