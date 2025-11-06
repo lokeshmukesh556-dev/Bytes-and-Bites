@@ -51,12 +51,13 @@ export default function SuperAdminOrdersPage() {
 
     if (scannedOrder) {
         if (scannedOrder.status === 'Completed') {
+            setSelectedOrder(null);
+            setIsDetailsDialogOpen(false);
             toast({
                 variant: 'destructive',
                 title: 'Order Already Served',
                 description: `This order (${result}) has already been marked as completed.`,
             });
-            // Do not open the dialog if already completed
         } else {
             setSelectedOrder(scannedOrder);
             setIsDetailsDialogOpen(true);

@@ -70,10 +70,6 @@ export default function AdminOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<OrderWithId | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
-  const handleViewDetails = (order: OrderWithId) => {
-    setSelectedOrder(order);
-    setIsDetailsDialogOpen(true);
-  };
   
   const handleUpdateStatus = (orderId: string, userId: string, status: OrderWithId['status']) => {
     if (!firestore) return;
@@ -136,9 +132,7 @@ export default function AdminOrdersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewDetails(order)}>
-                          View Details
-                        </DropdownMenuItem>
+                        
                         <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, order.userId, 'Preparing')}>Mark as Preparing</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, order.userId, 'Ready')}>Mark as Ready</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, order.userId, 'Completed')}>Mark as Completed</DropdownMenuItem>
@@ -151,13 +145,7 @@ export default function AdminOrdersPage() {
           </Table>
         </CardContent>
       </Card>
-      {selectedOrder && (
-        <OrderDetailsDialog
-          order={selectedOrder}
-          isOpen={isDetailsDialogOpen}
-          onOpenChange={setIsDetailsDialogOpen}
-        />
-      )}
+      
     </>
   );
 }
