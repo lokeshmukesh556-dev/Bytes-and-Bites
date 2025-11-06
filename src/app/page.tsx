@@ -70,7 +70,7 @@ export default function LoginPage() {
     router.push('/admin/dashboard');
   };
 
-  if (isUserLoading || user) {
+  if (isUserLoading || (user && !user.isAnonymous)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Loading...</p>
