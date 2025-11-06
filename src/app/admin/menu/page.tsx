@@ -60,11 +60,9 @@ export default function MenuManagementPage() {
   ) => {
     const { imageFile, ...restData } = itemData;
 
-    let dataToSave: Partial<MenuItemData> = {
-      ...restData,
-      description: restData.description || '', // Ensure description is always a string
-    };
+    let imageUrl: string | undefined = undefined;
 
+    // 1. Handle image upload if a new file is provided
     if (imageFile) {
       const storage = getStorage(firebaseApp);
       const storageRef = ref(
@@ -72,29 +70,38 @@ export default function MenuManagementPage() {
         `menu_items/${Date.now()}_${imageFile.name}`
       );
       const snapshot = await uploadBytes(storageRef, imageFile);
-      dataToSave.imageUrl = await getDownloadURL(snapshot.ref);
-      // For simplicity, we're not generating a new AI hint for uploaded images
-    } else if (!id) {
-      // If it's a new item without an image, use a placeholder
-      const randomSeed = Math.floor(Math.random() * 1000);
-      dataToSave.imageUrl = `https://picsum.photos/seed/${randomSeed}/600/400`;
-      dataToSave.imageHint = 'food placeholder';
+      imageUrl = await getDownloadURL(snapshot.ref);
     }
 
+    // 2. Logic for updating an existing item
     if (id) {
-      updateMenuItem(id, dataToSave);
-    } else {
-      // For a new item, we need to ensure all fields for MenuItemData are present
+      const dataToUpdate: Partial<MenuItemData> = {
+        ...restData,
+        description: restData.description || '',
+      };
+      if (imageUrl) {
+        dataToUpdate.imageUrl = imageUrl;
+      }
+      updateMenuItem(id, dataToUpdate);
+    } 
+    // 3. Logic for adding a new item
+    else {
+      // For a new item, we need all fields for MenuItemData
       const finalNewItemData: MenuItemData = {
-        name: dataToSave.name!,
-        price: dataToSave.price!,
-        category: dataToSave.category!,
-        description: dataToSave.description!,
-        imageUrl: dataToSave.imageUrl || `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/600/400`,
-        imageHint: dataToSave.imageHint || 'food placeholder',
+        name: restData.name!,
+        price: restData.price!,
+        category: restData.category!,
+        description: restData.description || '',
+        imageUrl:
+          imageUrl ||
+          `https://picsum.photos/seed/${Math.floor(
+            Math.random() * 1000
+          )}/600/400`,
+        imageHint: 'food placeholder', // Not generating new hints for uploads for simplicity
       };
       addMenuItem(finalNewItemData);
     }
+
     handleCloseDialog();
   };
 
