@@ -21,10 +21,12 @@ export default function OrderConfirmationPage({
 }: {
   params: { id: string };
 }) {
-  const { cartItems, subtotal, convenienceFee, total } = useCart();
+  const { cartItems, subtotal, convenienceFee, total, clearCart } = useCart();
   
-  // The cart is now cleared on the cart page before navigating here.
-  // The useEffect that was here has been removed.
+  // This effect now correctly clears the cart *after* the confirmation page has loaded.
+  useEffect(() => {
+    clearCart();
+  }, [clearCart]);
 
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(params.id)}`;
 

@@ -31,7 +31,6 @@ export default function CartPage() {
     subtotal,
     convenienceFee,
     total,
-    clearCart,
   } = useCart();
   const firestore = useFirestore();
   const { user } = useUser();
@@ -77,11 +76,9 @@ export default function CartPage() {
       );
 
       await Promise.all(orderItemsPromises);
-
-      // 3. Clear the cart
-      clearCart();
       
-      // 4. Navigate to confirmation page
+      // 3. Navigate to confirmation page
+      // The cart will be cleared on the confirmation page itself.
       router.push(`/order-confirmation/${newOrderRef.id}`);
 
     } catch (error) {
