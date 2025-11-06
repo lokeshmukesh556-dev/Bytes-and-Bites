@@ -8,10 +8,11 @@ import {
 } from 'firebase/auth';
 import { errorEmitter } from './error-emitter';
 
-/** Initiate anonymous sign-in (non-blocking). */
+/** Initiate anonymous sign-in (non-blocking). This function will not show an error to the user if it fails. */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
   signInAnonymously(authInstance).catch((error: AuthError) => {
-    errorEmitter.emit('auth-error', error);
+    // Log this error silently to the console for debugging, but do not show a user-facing error.
+    console.warn("Silent anonymous sign-in error:", error);
   });
 }
 
