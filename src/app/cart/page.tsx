@@ -152,13 +152,6 @@ export default function CartPage() {
                         payeeVpa: '9940918442@upi',
                         payeeName: 'Violet Bites', 
                     },
-                     tokenizationSpecification: {
-                        type: 'PAYMENT_GATEWAY',
-                        parameters: {
-                            gateway: 'example',
-                            gatewayMerchantId: 'exampleGatewayMerchantId',
-                        },
-                    },
                 },
             ],
         };
@@ -177,6 +170,7 @@ export default function CartPage() {
                         type: 'PAYMENT_GATEWAY',
                         parameters: {
                             gateway: 'example',
+                            gatewayMerchantId: 'exampleGatewayMerchantId',
                         },
                     },
                 },
