@@ -21,8 +21,9 @@ import { useFirestore, useUser } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import GooglePayButton from '@google-pay/button-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function CartPage() {
   const {
@@ -37,6 +38,7 @@ export default function CartPage() {
   const { user } = useUser();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleProceedToPayment = async () => {
     if (!user || !firestore || cartItems.length === 0) return;
@@ -88,6 +90,68 @@ export default function CartPage() {
       setIsProcessing(false);
     }
   };
+
+  const paymentRequest = useMemo(() => {
+    const baseRequest: google.payments.api.PaymentDataRequest = {
+        apiVersion: 2,
+        apiVersionMinor: 0,
+        merchantInfo: {
+            merchantName: 'Violet Bites',
+            merchantId: 'BCR2DN6T6N44EPIB',
+        },
+        transactionInfo: {
+            totalPriceStatus: 'FINAL',
+            totalPriceLabel: 'Total',
+            totalPrice: total.toFixed(2),
+            currencyCode: 'INR',
+            countryCode: 'IN',
+        },
+    };
+
+    if (isMobile) {
+        // UPI configuration for mobile devices
+        return {
+            ...baseRequest,
+            allowedPaymentMethods: [
+                {
+                    type: 'UPI',
+                    parameters: {
+                        payeeVpa: '9940918442@upi',
+                        payeeName: 'Violet Bites', // Or the registered name for the VPA
+                    },
+                    tokenizationSpecification: {
+                        type: 'PAYMENT_GATEWAY',
+                        parameters: {
+                            gateway: 'example',
+                            gatewayMerchantId: 'exampleGatewayMerchantId',
+                        },
+                    },
+                },
+            ],
+        };
+    } else {
+        // Card configuration for desktops
+        return {
+            ...baseRequest,
+            allowedPaymentMethods: [
+                {
+                    type: 'CARD',
+                    parameters: {
+                        allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                        allowedCardNetworks: ['MASTERCARD', 'VISA'],
+                    },
+                    tokenizationSpecification: {
+                        type: 'PAYMENT_GATEWAY',
+                        parameters: {
+                            gateway: 'example',
+                            gatewayMerchantId: 'exampleGatewayMerchantId',
+                        },
+                    },
+                },
+            ],
+        };
+    }
+  }, [total, isMobile]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -186,37 +250,7 @@ export default function CartPage() {
                 {cartItems.length > 0 && (
                   <GooglePayButton
                     environment="TEST"
-                    paymentRequest={{
-                      apiVersion: 2,
-                      apiVersionMinor: 0,
-                      allowedPaymentMethods: [
-                        {
-                          type: 'CARD',
-                          parameters: {
-                            allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-                            allowedCardNetworks: ['MASTERCARD', 'VISA'],
-                          },
-                          tokenizationSpecification: {
-                            type: 'PAYMENT_GATEWAY',
-                            parameters: {
-                              gateway: 'example',
-                              gatewayMerchantId: 'exampleGatewayMerchantId',
-                            },
-                          },
-                        },
-                      ],
-                      merchantInfo: {
-                        merchantName: 'Violet Bites',
-                        merchantId: 'BCR2DN6T6N44EPIB',
-                      },
-                      transactionInfo: {
-                        totalPriceStatus: 'FINAL',
-                        totalPriceLabel: 'Total',
-                        totalPrice: total.toFixed(2),
-                        currencyCode: 'INR',
-                        countryCode: 'IN',
-                      },
-                    }}
+                    paymentRequest={paymentRequest}
                     onLoadPaymentData={handleProceedToPayment}
                     buttonType="pay"
                     buttonSizeMode="fill"
