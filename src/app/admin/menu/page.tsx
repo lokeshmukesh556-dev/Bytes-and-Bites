@@ -55,17 +55,21 @@ export default function MenuManagementPage() {
   };
 
   const handleSaveItem = async (
-    app: FirebaseApp, // Pass app instance as an argument
     itemData: Omit<MenuItemData, 'imageHint' | 'imageUrl'> & {
       imageFile?: File | null;
       imageUrl?: string;
     },
     id?: string
   ) => {
-    handleCloseDialog();
+    if (!app) return;
     const storage = getStorage(app);
 
     let finalImageUrl = itemData.imageUrl || '';
+    
+    // If we are editing an existing item, preserve its URL unless a new one is provided.
+    if (id && editingItem && !itemData.imageFile && !itemData.imageUrl) {
+        finalImageUrl = editingItem.imageUrl;
+    }
 
     // If a new file is uploaded, upload it to storage and get the URL
     if (itemData.imageFile) {
@@ -85,12 +89,8 @@ export default function MenuManagementPage() {
       description: itemData.description || '',
       price: itemData.price,
       category: itemData.category,
+      imageUrl: finalImageUrl,
     };
-
-    // Only add imageUrl if it's being set or changed.
-    if (finalImageUrl) {
-        dataToSave.imageUrl = finalImageUrl;
-    }
 
     if (id) {
       updateMenuItem(id, dataToSave);
@@ -103,6 +103,7 @@ export default function MenuManagementPage() {
       } as MenuItemData;
       addMenuItem(newItemData);
     }
+    handleCloseDialog();
   };
 
   const handleDeleteItem = (itemId: string) => {
@@ -200,12 +201,14 @@ export default function MenuManagementPage() {
           </Table>
         </CardContent>
       </Card>
-      <MenuItemFormDialog
-        isOpen={isDialogOpen}
-        onOpenChange={handleCloseDialog}
-        onSave={(...args) => handleSaveItem(app, ...args)} // Pass the app instance here
-        item={editingItem}
-      />
+      {isDialogOpen && (
+        <MenuItemFormDialog
+          isOpen={isDialogOpen}
+          onOpenChange={handleCloseDialog}
+          onSave={handleSaveItem}
+          item={editingItem}
+        />
+      )}
     </>
   );
 }

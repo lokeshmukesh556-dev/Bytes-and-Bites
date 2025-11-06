@@ -34,8 +34,6 @@ import { useEffect } from 'react';
 import { Textarea } from '../ui/textarea';
 import { ScrollArea } from '../ui/scroll-area';
 import { ImageUploader } from './image-uploader';
-import { FirebaseApp } from 'firebase/app';
-
 
 const formSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters long.'),
