@@ -44,38 +44,7 @@ export default function SuperAdminLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/superadmin/dashboard">
-                  <LayoutDashboard />
-                  Global Dashboard
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/superadmin/canteens">
-                  <Building />
-                  Canteens
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/superadmin/users">
-                  <Users />
-                  Users
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/superadmin/revenue">
-                  <DollarSign />
-                  Revenue
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {/* Sidebar items removed as per request */}
           </SidebarMenu>
         </SidebarContent>
       </Sidebar>
