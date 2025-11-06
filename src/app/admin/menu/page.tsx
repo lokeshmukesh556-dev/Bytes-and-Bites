@@ -60,8 +60,11 @@ export default function MenuManagementPage() {
   ) => {
     handleCloseDialog();
     const { imageFile, ...restData } = itemData;
+    let imageUrl =
+      id && menuItems.find((item) => item.id === id)?.imageUrl
+        ? menuItems.find((item) => item.id === id)!.imageUrl
+        : '';
 
-    let newImageUrl: string | undefined;
     if (imageFile) {
       try {
         const storage = getStorage(firebaseApp);
@@ -70,42 +73,33 @@ export default function MenuManagementPage() {
           `menu_items/${Date.now()}_${imageFile.name}`
         );
         const snapshot = await uploadBytes(storageRef, imageFile);
-        newImageUrl = await getDownloadURL(snapshot.ref);
+        imageUrl = await getDownloadURL(snapshot.ref);
       } catch (error) {
         console.error('Error uploading image:', error);
-        // Optionally show a toast to the user
         return;
       }
     }
 
     if (id) {
-      // Logic for updating an existing item
-      const originalItem = menuItems.find((item) => item.id === id);
+      // Create a partial object for the update
       const dataToUpdate: Partial<MenuItemData> = {
         ...restData,
-        description: restData.description || '',
+        description: restData.description || '', // ensure description is not undefined
       };
-
-      if (newImageUrl) {
-        dataToUpdate.imageUrl = newImageUrl;
+      if (imageUrl) {
+        dataToUpdate.imageUrl = imageUrl;
       }
-
-      // If no new image is uploaded, the existing imageUrl is preserved because we don't add it to the update object.
       updateMenuItem(id, dataToUpdate);
     } else {
-      // Logic for adding a new item
-      const imageUrl =
-        newImageUrl ||
-        `https://picsum.photos/seed/${Math.floor(
-          Math.random() * 1000
-        )}/600/400`;
-
+      // For a new item, ensure all fields are present
       const finalNewItemData: MenuItemData = {
         name: restData.name,
         price: restData.price,
         category: restData.category,
         description: restData.description || '',
-        imageUrl: imageUrl,
+        imageUrl:
+          imageUrl ||
+          `https://picsum.photos/seed/${Math.random()}/600/400`,
         imageHint: 'food placeholder',
       };
       addMenuItem(finalNewItemData);
