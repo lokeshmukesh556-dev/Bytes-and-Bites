@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AppHeader } from '@/components/shared/header';
@@ -89,7 +90,7 @@ export default function MenuPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <main className="container py-8">
+      <main className="container py-8 px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl font-headline">
             Today's Menu
