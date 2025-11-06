@@ -64,10 +64,19 @@ export default function LoginPage() {
   };
 
   const handleAdminLogin = () => {
-    // For now, we will just navigate.
-    // In a real app, you would handle email/password login here.
-    // We assume admin role is pre-assigned in Firebase Console.
-    router.push('/admin/dashboard');
+    if (
+      adminEmail === 'watson777@gmail.com' &&
+      adminPassword === 'watson777'
+    ) {
+      // In a real app, you would handle proper Firebase Auth for admins here.
+      router.push('/admin/dashboard');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: 'Invalid credentials for admin.',
+      });
+    }
   };
 
   if (isUserLoading || (user && !user.isAnonymous)) {
