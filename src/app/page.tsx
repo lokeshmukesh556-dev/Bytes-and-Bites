@@ -23,7 +23,6 @@ import {
   initiateAnonymousSignIn,
   useAuth,
   useUser,
-  initiateEmailSignUp,
   initiateEmailSignIn,
 } from '@/firebase';
 import { useEffect, useState } from 'react';
@@ -41,8 +40,6 @@ export default function LoginPage() {
   const [customerPassword, setCustomerPassword] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
 
   useEffect(() => {
     // This effect handles automatic redirection if the user is already logged in.
@@ -75,17 +72,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleCustomerSignUp = () => {
-    if (auth) {
-      initiateEmailSignUp(auth, signupEmail, signupPassword);
-      toast({
-        title: 'Account Created',
-        description: 'You have been successfully signed up and logged in.',
-      });
-      // onAuthStateChanged will handle the redirect on successful sign-up
-    }
-  };
-
   if (isUserLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -106,9 +92,8 @@ export default function LoginPage() {
           </p>
         </div>
         <Tabs defaultValue="customer" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="customer">Customer</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
             <TabsTrigger value="admin">Canteen</TabsTrigger>
             <TabsTrigger value="superadmin">food court</TabsTrigger>
           </TabsList>
@@ -145,43 +130,6 @@ export default function LoginPage() {
                   className="w-full bg-primary hover:bg-primary/90"
                 >
                   Login
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="signup">
-            <Card>
-              <CardHeader>
-                <CardTitle>Create Account</CardTitle>
-                <CardDescription>
-                  Sign up to start ordering from Violet Bites.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="new.user@example.com"
-                    value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
-                  />
-                </div>
-                <Button
-                  onClick={handleCustomerSignUp}
-                  className="w-full bg-primary hover:bg-primary/90"
-                >
-                  Create Account
                 </Button>
               </CardContent>
             </Card>
