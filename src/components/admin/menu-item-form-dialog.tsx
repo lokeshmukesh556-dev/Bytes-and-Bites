@@ -46,7 +46,7 @@ interface MenuItemFormDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onSave: (
-    item: Omit<MenuItemFormValues, 'imageFile'> & { imageFile?: File, description?: string },
+    item: Omit<MenuItemFormValues, 'imageFile'> & { imageFile?: File, description: string },
     id?: string
   ) => void;
   item: MenuItemWithId | null;
@@ -92,10 +92,10 @@ export function MenuItemFormDialog({
   const onSubmit = (values: MenuItemFormValues) => {
     const dataToSave: Omit<MenuItemFormValues, 'imageFile'> & {
       imageFile?: File;
-      description?: string;
+      description: string;
     } = {
       ...values,
-      description: values.description || '', // Ensure description is always a string
+      description: values.description || '',
     };
 
     if (values.imageFile && values.imageFile.length > 0) {
