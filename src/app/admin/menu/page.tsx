@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,6 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { MenuItemFormDialog } from '@/components/admin/menu-item-form-dialog';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useFirebaseApp } from '@/firebase';
 
 export default function MenuManagementPage() {
@@ -40,8 +40,7 @@ export default function MenuManagementPage() {
     useMenu();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItemWithId | null>(null);
-  const firebaseApp = useFirebaseApp();
-
+  
   const handleOpenDialog = (item: MenuItemWithId | null = null) => {
     setEditingItem(item);
     setIsDialogOpen(true);
@@ -53,56 +52,36 @@ export default function MenuManagementPage() {
   };
 
   const handleSaveItem = async (
-    itemData: Omit<MenuItemData, 'imageUrl' | 'imageHint'> & {
-      imageFile?: File;
-    },
+    itemData: Omit<MenuItemData, 'imageHint'>,
     id?: string
   ) => {
     handleCloseDialog();
-    const { imageFile, ...restData } = itemData;
-    let imageUrl =
-      id && menuItems.find((item) => item.id === id)?.imageUrl
-        ? menuItems.find((item) => item.id === id)!.imageUrl
-        : '';
+    
+    let finalImageUrl = itemData.imageUrl;
 
-    if (imageFile) {
-      try {
-        const storage = getStorage(firebaseApp);
-        const storageRef = ref(
-          storage,
-          `menu_items/${Date.now()}_${imageFile.name}`
-        );
-        const snapshot = await uploadBytes(storageRef, imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
-      } catch (error) {
-        console.error('Error uploading image:', error);
-        return;
-      }
+    // If no image URL is provided for a new item, use a placeholder.
+    if (!finalImageUrl && !id) {
+        finalImageUrl = `https://picsum.photos/seed/${Math.random()}/600/400`;
     }
 
+    const dataToSave = {
+        ...itemData,
+        description: itemData.description || '',
+        imageUrl: finalImageUrl || (id ? menuItems.find(item => item.id === id)?.imageUrl : '') || '',
+    };
+    
     if (id) {
-      // Create a partial object for the update
-      const dataToUpdate: Partial<MenuItemData> = {
-        ...restData,
-        description: restData.description || '', // ensure description is not undefined
-      };
-      if (imageUrl) {
-        dataToUpdate.imageUrl = imageUrl;
-      }
-      updateMenuItem(id, dataToUpdate);
+        // Ensure imageUrl is not an empty string if it was not provided and the item is being edited.
+        if (!dataToSave.imageUrl) {
+            const currentItem = menuItems.find(item => item.id === id);
+            dataToSave.imageUrl = currentItem?.imageUrl || '';
+        }
+      updateMenuItem(id, dataToSave);
     } else {
-      // For a new item, ensure all fields are present
-      const finalNewItemData: MenuItemData = {
-        name: restData.name,
-        price: restData.price,
-        category: restData.category,
-        description: restData.description || '',
-        imageUrl:
-          imageUrl ||
-          `https://picsum.photos/seed/${Math.random()}/600/400`,
-        imageHint: 'food placeholder',
-      };
-      addMenuItem(finalNewItemData);
+      addMenuItem({
+          ...dataToSave,
+          imageHint: 'food placeholder' // default hint for new items
+      });
     }
   };
 

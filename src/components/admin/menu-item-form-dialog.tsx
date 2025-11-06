@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -38,7 +39,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   price: z.coerce.number().positive('Price must be a positive number.'),
   category: z.enum(['meal', 'snack']),
-  imageFile: z.any().optional(),
+  imageUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
 });
 
 type MenuItemFormValues = z.infer<typeof formSchema>;
@@ -47,7 +48,7 @@ interface MenuItemFormDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onSave: (
-    item: Omit<MenuItemFormValues, 'imageFile'> & { imageFile?: File },
+    item: MenuItemFormValues,
     id?: string
   ) => void;
   item: MenuItemWithId | null;
@@ -66,10 +67,9 @@ export function MenuItemFormDialog({
       description: '',
       price: 0,
       category: 'meal',
+      imageUrl: '',
     },
   });
-
-  const imageFileRef = form.register('imageFile');
 
   useEffect(() => {
     // Only reset form when the dialog opens with a new item or for a new entry.
@@ -80,6 +80,7 @@ export function MenuItemFormDialog({
           description: item.description || '',
           price: item.price,
           category: item.category,
+          imageUrl: item.imageUrl || '',
         });
       } else {
         form.reset({
@@ -87,26 +88,14 @@ export function MenuItemFormDialog({
           description: '',
           price: 0,
           category: 'meal',
-          imageFile: undefined,
+          imageUrl: '',
         });
       }
     }
   }, [item, isOpen, form]);
 
   const onSubmit = (values: MenuItemFormValues) => {
-    const dataToSave: Omit<MenuItemFormValues, 'imageFile'> & {
-      imageFile?: File;
-    } = {
-      ...values,
-    };
-
-    if (values.imageFile && values.imageFile.length > 0) {
-      dataToSave.imageFile = values.imageFile[0];
-    } else {
-      delete dataToSave.imageFile;
-    }
-
-    onSave(dataToSave, item?.id);
+    onSave(values, item?.id);
   };
 
   return (
@@ -196,12 +185,16 @@ export function MenuItemFormDialog({
               />
               <FormField
                 control={form.control}
-                name="imageFile"
-                render={() => (
+                name="imageUrl"
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Image</FormLabel>
+                    <FormLabel>Image URL</FormLabel>
                     <FormControl>
-                      <Input type="file" accept="image/*" {...imageFileRef} />
+                      <Input
+                        type="text"
+                        placeholder="https://example.com/image.jpg"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
