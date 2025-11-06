@@ -90,6 +90,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
   const updateMenuItem = (id: string, updatedItem: Partial<MenuItemData>) => {
     if (!firestore) return;
     const docRef = doc(firestore, 'menu_items', id);
+    // Explicitly pass { merge: true } to prevent overwriting the document
     setDocumentNonBlocking(docRef, updatedItem, { merge: true });
   };
 
