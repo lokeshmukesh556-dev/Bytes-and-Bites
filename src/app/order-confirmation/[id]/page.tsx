@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { useCart, type CartItem } from '@/context/CartContext';
 import { CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 export default function OrderConfirmationPage({
@@ -22,7 +22,10 @@ export default function OrderConfirmationPage({
 }: {
   params: { id: string };
 }) {
-  const { id } = params;
+  // The 'params' object is a Promise-like object in recent Next.js versions.
+  // We must use `React.use` to unwrap its value.
+  const { id } = React.use(params);
+  
   // Get cart data and clearCart function from context
   const { cartItems, subtotal, convenienceFee, total, clearCart } = useCart();
   
