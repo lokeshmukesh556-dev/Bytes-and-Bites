@@ -59,26 +59,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const menuItem = menuItemsById.get(itemId);
     if (!menuItem) return;
 
-    setCartItemBases((prevItems) => {
-      const existingItem = prevItems.find((i) => i.id === itemId);
-      const currentQuantity = existingItem?.quantity || 0;
+    const existingItem = cartItemBases.find((i) => i.id === itemId);
+    const currentQuantity = existingItem?.quantity || 0;
 
-      if (currentQuantity >= menuItem.stock) {
-        toast({
-          variant: 'destructive',
-          title: 'Stock Limit Reached',
-          description: `You cannot add more of ${menuItem.name}.`,
-        });
-        return prevItems; // Return original items without change
-      }
-      
-      if (existingItem) {
-        return prevItems.map((i) =>
+    if (currentQuantity >= menuItem.stock) {
+      toast({
+        variant: 'destructive',
+        title: 'Stock Limit Reached',
+        description: `You cannot add more of ${menuItem.name}.`,
+      });
+      return;
+    }
+
+    if (existingItem) {
+      setCartItemBases((prevItems) =>
+        prevItems.map((i) =>
           i.id === itemId ? { ...i, quantity: i.quantity + 1 } : i
-        );
-      }
-      return [...prevItems, { id: itemId, quantity: 1 }];
-    });
+        )
+      );
+    } else {
+      setCartItemBases((prevItems) => [...prevItems, { id: itemId, quantity: 1 }]);
+    }
   };
 
   const removeFromCart = (itemId: string) => {
@@ -89,10 +90,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const menuItem = menuItemsById.get(itemId);
     if (!menuItem) return;
 
-    const existingItem = cartItems.find(i => i.id === itemId);
-    if (!existingItem) return;
+    const existingItemBase = cartItemBases.find(i => i.id === itemId);
+    if (!existingItemBase) return;
 
-    const newQuantity = existingItem.quantity + change;
+    const newQuantity = existingItemBase.quantity + change;
     
     if (change > 0 && newQuantity > menuItem.stock) {
         toast({
@@ -103,15 +104,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return; // Exit without changing state
     }
 
-    setCartItemBases(prevItems => {
-        if (newQuantity > 0) {
-            return prevItems.map(item =>
-                item.id === itemId ? { ...item, quantity: newQuantity } : item
-            );
-        } else {
-            return prevItems.filter(item => item.id !== itemId);
-        }
-    });
+    if (newQuantity > 0) {
+      setCartItemBases(prevItems =>
+        prevItems.map(item =>
+            item.id === itemId ? { ...item, quantity: newQuantity } : item
+        )
+      );
+    } else {
+      removeFromCart(itemId);
+    }
 };
   
   const clearCart = () => {
