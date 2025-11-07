@@ -11,10 +11,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { useCart } from '@/context/CartContext';
+import { useCart, type CartItem } from '@/context/CartContext';
 import { CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 export default function OrderConfirmationPage({
@@ -22,14 +22,45 @@ export default function OrderConfirmationPage({
 }: {
   params: { id: string };
 }) {
+  // Get cart data and clearCart function from context
   const { cartItems, subtotal, convenienceFee, total, clearCart } = useCart();
   
-  // This effect now correctly clears the cart *after* the confirmation page has loaded.
+  // Create local state to hold a snapshot of the order details.
+  const [confirmedOrder, setConfirmedOrder] = useState<{
+    items: CartItem[];
+    subtotal: number;
+    convenienceFee: number;
+    total: number;
+  } | null>(null);
+
+
   useEffect(() => {
-    clearCart();
-  }, [clearCart]);
+    // When the component mounts, if there are items in the cart,
+    // save them to the local state and then clear the global cart.
+    if (cartItems.length > 0) {
+      setConfirmedOrder({
+        items: [...cartItems],
+        subtotal,
+        convenienceFee,
+        total,
+      });
+      clearCart();
+    }
+  // This effect should only run once when the page loads.
+  // clearCart is a stable function, so we only need to depend on the data.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartItems, subtotal, convenienceFee, total]);
 
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(id)}`;
+
+  // If the confirmed order data hasn't been set yet (e.g., on first render), show a loading state.
+  if (!confirmedOrder) {
+    return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+            <p>Finalizing your order...</p>
+        </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -59,14 +90,14 @@ export default function OrderConfirmationPage({
 
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Amount Paid</p>
-              <p className="text-4xl font-bold">{total.toFixed(2)}</p>
+              <p className="text-4xl font-bold">{confirmedOrder.total.toFixed(2)}</p>
             </div>
             
             <Separator />
 
             <h3 className="font-semibold text-center">Order Summary</h3>
             <div className="space-y-2">
-              {cartItems.map(item => (
+              {confirmedOrder.items.map(item => (
                 <div className="flex justify-between" key={item.id}>
                   <span>{item.name} (x{item.quantity})</span>
                   <span>{(item.price * item.quantity).toFixed(2)}</span>
@@ -77,17 +108,17 @@ export default function OrderConfirmationPage({
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>{subtotal.toFixed(2)}</span>
+                <span>{confirmedOrder.subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Convenience Fee</span>
-                <span>{convenienceFee.toFixed(2)}</span>
+                <span>{confirmedOrder.convenienceFee.toFixed(2)}</span>
               </div>
             </div>
             <Separator />
             <div className="flex justify-between font-bold text-xl">
               <span>Total Paid</span>
-              <span>{total.toFixed(2)}</span>
+              <span>{confirmedOrder.total.toFixed(2)}</span>
             </div>
             <div className="pt-6 flex justify-center">
               <Button asChild>
