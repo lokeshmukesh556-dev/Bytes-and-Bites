@@ -23,7 +23,6 @@ import { collection, doc, runTransaction } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useState, useMemo, useEffect } from 'react';
 import GooglePayButton from '@google-pay/button-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 
 export default function CartPage() {
@@ -40,7 +39,6 @@ export default function CartPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
-  const isMobile = useIsMobile();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -125,10 +123,35 @@ export default function CartPage() {
     }
   };
 
-  const paymentRequest = useMemo(() => {
-    const baseRequest: Omit<google.payments.api.PaymentDataRequest, 'allowedPaymentMethods'> = {
+  const paymentRequest = useMemo((): google.payments.api.PaymentDataRequest => {
+    return {
         apiVersion: 2,
         apiVersionMinor: 0,
+        allowedPaymentMethods: [
+            {
+                type: 'CARD',
+                parameters: {
+                    allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                    allowedCardNetworks: ['MASTERCARD', 'VISA'],
+                },
+                tokenizationSpecification: {
+                    type: 'PAYMENT_GATEWAY',
+                    parameters: {
+                        gateway: 'example',
+                        gatewayMerchantId: 'exampleGatewayMerchantId',
+                    },
+                },
+            },
+            {
+                type: 'UPI',
+                parameters: {
+                    payeeVpa: '9940918442@upi',
+                    payeeName: 'Violet Bites',
+                    mcc: '5812', // Merchant Category Code for Eating Places and Restaurants
+                    transactionReferenceNumber: `VIOLETBITES-${Date.now()}`
+                },
+            }
+        ],
         merchantInfo: {
             merchantName: 'Violet Bites',
         },
@@ -140,44 +163,7 @@ export default function CartPage() {
             countryCode: 'IN',
         },
     };
-
-    if (isMobile) {
-        // UPI configuration for mobile devices
-        return {
-            ...baseRequest,
-            allowedPaymentMethods: [
-                {
-                    type: 'UPI',
-                    parameters: {
-                        payeeVpa: '9940918442@upi',
-                        payeeName: 'Violet Bites', 
-                    },
-                },
-            ],
-        };
-    } else {
-        // Card configuration for desktops
-        return {
-            ...baseRequest,
-            allowedPaymentMethods: [
-                {
-                    type: 'CARD',
-                    parameters: {
-                        allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-                        allowedCardNetworks: ['MASTERCARD', 'VISA'],
-                    },
-                    tokenizationSpecification: {
-                        type: 'PAYMENT_GATEWAY',
-                        parameters: {
-                            gateway: 'example',
-                            gatewayMerchantId: 'exampleGatewayMerchantId',
-                        },
-                    },
-                },
-            ],
-        };
-    }
-  }, [total, isMobile]);
+  }, [total]);
 
   return (
     <div className="min-h-screen bg-background">
