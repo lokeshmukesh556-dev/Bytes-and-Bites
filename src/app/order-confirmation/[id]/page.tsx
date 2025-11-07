@@ -11,59 +11,123 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { useCart, type CartItem } from '@/context/CartContext';
+import { useCart } from '@/context/CartContext';
 import { CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import Image from 'next/image';
+import {
+  useCollection,
+  useDoc,
+  useFirestore,
+  useUser,
+  type WithId,
+} from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
+import { useMemoFirebase } from '@/firebase/provider';
+import type { OrderData } from '@/app/admin/orders/page';
+import type { OrderItemData } from '@/components/admin/order-details-dialog';
+import { useMenu } from '@/context/MenuContext';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function OrderConfirmationSkeleton() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <Card className="w-full max-w-2xl">
+        <CardHeader className="items-center text-center">
+          <Skeleton className="w-16 h-16 rounded-full" />
+          <Skeleton className="h-8 w-3/4 mt-4" />
+          <Skeleton className="h-4 w-1/2 mt-2" />
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex justify-center p-4">
+            <Skeleton className="w-[150px] h-[150px]" />
+          </div>
+          <div className="p-4 border bg-muted/50 rounded-lg text-center space-y-2">
+            <Skeleton className="h-4 w-1/4 mx-auto" />
+            <Skeleton className="h-6 w-3/4 mx-auto" />
+          </div>
+          <div className="text-center space-y-2">
+            <Skeleton className="h-4 w-1/4 mx-auto" />
+            <Skeleton className="h-10 w-1/2 mx-auto" />
+          </div>
+          <Separator />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+          </div>
+          <div className="pt-6 flex justify-center">
+            <Skeleton className="h-10 w-40" />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function OrderConfirmationPage({
   params,
 }: {
   params: { id: string };
 }) {
-  // The 'params' object is a Promise-like object in recent Next.js versions.
-  // We must use `React.use` to unwrap its value.
   const { id } = React.use(params);
-  
-  // Get cart data and clearCart function from context
-  const { cartItems, subtotal, convenienceFee, total, clearCart } = useCart();
-  
-  // Create local state to hold a snapshot of the order details.
-  const [confirmedOrder, setConfirmedOrder] = useState<{
-    items: CartItem[];
-    subtotal: number;
-    convenienceFee: number;
-    total: number;
-  } | null>(null);
+  const { clearCart } = useCart();
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const { menuItems, isLoading: isMenuLoading } = useMenu();
 
-
+  // Clear the cart once when the page loads after a successful order.
   useEffect(() => {
-    // When the component mounts, if there are items in the cart,
-    // save them to the local state and then clear the global cart.
-    if (cartItems.length > 0) {
-      setConfirmedOrder({
-        items: [...cartItems],
+    clearCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const orderRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, `users/${user.uid}/orders/${id}`) : null),
+    [firestore, user, id]
+  );
+  const { data: order, isLoading: isOrderLoading } = useDoc<OrderData>(orderRef);
+
+  const orderItemsRef = useMemoFirebase(
+    () =>
+      firestore && user
+        ? collection(firestore, `users/${user.uid}/orders/${id}/order_items`)
+        : null,
+    [firestore, user, id]
+  );
+  const { data: orderItems, isLoading: areOrderItemsLoading } = useCollection<OrderItemData>(orderItemsRef);
+  
+  const menuItemsById = useMemo(() => {
+    return new Map(menuItems.map((item) => [item.id, item]));
+  }, [menuItems]);
+
+  const confirmedOrder = useMemo(() => {
+    if (!order || !orderItems || !menuItemsById) return null;
+
+    const items = orderItems.map(orderItem => {
+        const menuItem = menuItemsById.get(orderItem.menuItemId);
+        return {
+            ...orderItem,
+            name: menuItem?.name || 'Unknown Item',
+        };
+    });
+
+    const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+    return {
+        items,
         subtotal,
-        convenienceFee,
-        total,
-      });
-      clearCart();
-    }
-  // This effect should only run once when the page loads.
-  // clearCart is a stable function, so we only need to depend on the data.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartItems, subtotal, convenienceFee, total]);
+        convenienceFee: order.convenienceFee,
+        total: order.totalAmount,
+    };
+  }, [order, orderItems, menuItemsById]);
 
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(id)}`;
 
-  // If the confirmed order data hasn't been set yet (e.g., on first render), show a loading state.
-  if (!confirmedOrder) {
-    return (
-        <div className="min-h-screen bg-background flex items-center justify-center">
-            <p>Finalizing your order...</p>
-        </div>
-    );
+  const isLoading = isOrderLoading || areOrderItemsLoading || isMenuLoading;
+
+  if (isLoading || !confirmedOrder) {
+    return <OrderConfirmationSkeleton />;
   }
 
   return (
@@ -80,7 +144,7 @@ export default function OrderConfirmationPage({
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex justify-center p-4">
-              <Image 
+              <Image
                 src={qrCodeUrl}
                 alt={`QR Code for Order ID ${id}`}
                 width={150}
@@ -96,14 +160,16 @@ export default function OrderConfirmationPage({
               <p className="text-sm text-muted-foreground">Amount Paid</p>
               <p className="text-4xl font-bold">{confirmedOrder.total.toFixed(2)}</p>
             </div>
-            
+
             <Separator />
 
             <h3 className="font-semibold text-center">Order Summary</h3>
             <div className="space-y-2">
-              {confirmedOrder.items.map(item => (
+              {confirmedOrder.items.map((item) => (
                 <div className="flex justify-between" key={item.id}>
-                  <span>{item.name} (x{item.quantity})</span>
+                  <span>
+                    {item.name} (x{item.quantity})
+                  </span>
                   <span>{(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
