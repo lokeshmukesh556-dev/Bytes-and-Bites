@@ -18,10 +18,11 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 export default function OrderConfirmationPage({
-  params: { id },
+  params,
 }: {
   params: { id: string };
 }) {
+  const { id } = params;
   // Get cart data and clearCart function from context
   const { cartItems, subtotal, convenienceFee, total, clearCart } = useCart();
   
