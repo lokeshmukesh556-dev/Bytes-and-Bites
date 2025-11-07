@@ -89,10 +89,11 @@ export default function CartPage() {
     // This is safe for checking browser/device features.
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    const allowedPaymentMethods: google.payments.api.PaymentMethodSpecification[] = [cardPaymentMethod];
+    const allowedPaymentMethods: google.payments.api.PaymentMethodSpecification[] = [];
     if (isMobile) {
       allowedPaymentMethods.push(upiPaymentMethod);
     }
+    allowedPaymentMethods.push(cardPaymentMethod);
     
     const newRequest: google.payments.api.PaymentDataRequest = {
       ...baseRequest,
