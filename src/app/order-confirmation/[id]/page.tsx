@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AppHeader } from '@/components/shared/header';
@@ -17,7 +18,7 @@ import { useEffect } from 'react';
 import Image from 'next/image';
 
 export default function OrderConfirmationPage({
-  params,
+  params: { id },
 }: {
   params: { id: string };
 }) {
@@ -28,7 +29,7 @@ export default function OrderConfirmationPage({
     clearCart();
   }, [clearCart]);
 
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(params.id)}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(id)}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,14 +47,14 @@ export default function OrderConfirmationPage({
             <div className="flex justify-center p-4">
               <Image 
                 src={qrCodeUrl}
-                alt={`QR Code for Order ID ${params.id}`}
+                alt={`QR Code for Order ID ${id}`}
                 width={150}
                 height={150}
               />
             </div>
             <div className="p-4 border bg-muted/50 rounded-lg text-center">
               <p className="text-sm text-muted-foreground">Order ID</p>
-              <p className="font-mono text-lg">{params.id}</p>
+              <p className="font-mono text-lg">{id}</p>
             </div>
 
             <div className="text-center">
