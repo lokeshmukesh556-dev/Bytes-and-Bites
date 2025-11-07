@@ -25,6 +25,48 @@ import { useState, useMemo, useEffect } from 'react';
 import GooglePayButton from '@google-pay/button-react';
 import { useToast } from '@/hooks/use-toast';
 
+const baseRequest = {
+  apiVersion: 2,
+  apiVersionMinor: 0,
+};
+
+const tokenizationSpecification = {
+  type: 'PAYMENT_GATEWAY',
+  parameters: {
+    gateway: 'example',
+    gatewayMerchantId: 'exampleGatewayMerchantId',
+  },
+};
+
+const allowedCardNetworks: google.payments.api.CardNetwork[] = [
+  'MASTERCARD',
+  'VISA',
+];
+const allowedCardAuthMethods: google.payments.api.CardAuthMethod[] = [
+  'PAN_ONLY',
+  'CRYPTOGRAM_3DS',
+];
+
+const cardPaymentMethod: google.payments.api.CardPaymentMethodSpecification = {
+  type: 'CARD',
+  parameters: {
+    allowedAuthMethods: allowedCardAuthMethods,
+    allowedCardNetworks: allowedCardNetworks,
+  },
+  tokenizationSpecification: tokenizationSpecification,
+};
+
+const upiPaymentMethod: google.payments.api.PaymentMethodSpecification = {
+  type: 'UPI',
+  parameters: {
+    payeeVpa: '9940918442@upi',
+    payeeName: 'Violet Bites',
+    mcc: '5812',
+    transactionReferenceNumber: `VIOLETBITES-${Date.now()}`,
+  },
+};
+
+
 export default function CartPage() {
   const {
     cartItems,
@@ -39,12 +81,36 @@ export default function CartPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isClient, setIsClient] = useState(false);
+  const [paymentRequest, setPaymentRequest] = useState<google.payments.api.PaymentDataRequest | null>(null);
+
 
   useEffect(() => {
-    // This ensures the component only renders the GPay button on the client
-    setIsClient(true);
-  }, []);
+    // This effect runs only on the client, after the initial render.
+    // This is safe for checking browser/device features.
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    const allowedPaymentMethods: google.payments.api.PaymentMethodSpecification[] = [cardPaymentMethod];
+    if (isMobile) {
+      allowedPaymentMethods.push(upiPaymentMethod);
+    }
+    
+    const newRequest: google.payments.api.PaymentDataRequest = {
+      ...baseRequest,
+      allowedPaymentMethods: allowedPaymentMethods,
+      merchantInfo: {
+        merchantName: 'Violet Bites',
+      },
+      transactionInfo: {
+        totalPriceStatus: 'FINAL',
+        totalPriceLabel: 'Total',
+        totalPrice: total.toFixed(2),
+        currencyCode: 'INR',
+        countryCode: 'IN',
+      },
+    };
+    setPaymentRequest(newRequest);
+
+  }, [total]);
 
   const handleProceedToPayment = async () => {
     if (!user || !firestore || cartItems.length === 0) return;
@@ -122,48 +188,6 @@ export default function CartPage() {
       setIsProcessing(false);
     }
   };
-
-  const paymentRequest = useMemo((): google.payments.api.PaymentDataRequest => {
-    return {
-        apiVersion: 2,
-        apiVersionMinor: 0,
-        allowedPaymentMethods: [
-            {
-                type: 'CARD',
-                parameters: {
-                    allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-                    allowedCardNetworks: ['MASTERCARD', 'VISA'],
-                },
-                tokenizationSpecification: {
-                    type: 'PAYMENT_GATEWAY',
-                    parameters: {
-                        gateway: 'example',
-                        gatewayMerchantId: 'exampleGatewayMerchantId',
-                    },
-                },
-            },
-            {
-                type: 'UPI',
-                parameters: {
-                    payeeVpa: '9940918442@upi',
-                    payeeName: 'Violet Bites',
-                    mcc: '5812', // Merchant Category Code for Eating Places and Restaurants
-                    transactionReferenceNumber: `VIOLETBITES-${Date.now()}`
-                },
-            }
-        ],
-        merchantInfo: {
-            merchantName: 'Violet Bites',
-        },
-        transactionInfo: {
-            totalPriceStatus: 'FINAL',
-            totalPriceLabel: 'Total',
-            totalPrice: total.toFixed(2),
-            currencyCode: 'INR',
-            countryCode: 'IN',
-        },
-    };
-  }, [total]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -259,7 +283,7 @@ export default function CartPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                {isClient && cartItems.length > 0 && (
+                {paymentRequest && cartItems.length > 0 && (
                   <GooglePayButton
                     environment="TEST"
                     paymentRequest={paymentRequest}
