@@ -102,7 +102,7 @@ export default function OrderConfirmationPage({
   }, [menuItems]);
 
   const confirmedOrder = useMemo(() => {
-    if (!order || !orderItems || !menuItemsById) return null;
+    if (!order || !orderItems || menuItemsById.size === 0) return null;
 
     const items = orderItems.map(orderItem => {
         const menuItem = menuItemsById.get(orderItem.menuItemId);
@@ -201,3 +201,5 @@ export default function OrderConfirmationPage({
     </div>
   );
 }
+
+    

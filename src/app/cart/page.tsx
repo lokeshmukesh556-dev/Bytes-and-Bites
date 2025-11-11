@@ -82,18 +82,21 @@ export default function CartPage() {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentRequest, setPaymentRequest] = useState<google.payments.api.PaymentDataRequest | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     // This effect runs only on the client, after the initial render.
     // This is safe for checking browser/device features.
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    const allowedPaymentMethods: google.payments.api.PaymentMethodSpecification[] = [];
+    const allowedPaymentMethods: google.payments.api.PaymentMethodSpecification[] = [cardPaymentMethod];
     if (isMobile) {
       allowedPaymentMethods.push(upiPaymentMethod);
     }
-    allowedPaymentMethods.push(cardPaymentMethod);
     
     const newRequest: google.payments.api.PaymentDataRequest = {
       ...baseRequest,
@@ -284,7 +287,7 @@ export default function CartPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                {paymentRequest && cartItems.length > 0 && (
+                {isClient && paymentRequest && cartItems.length > 0 && (
                   <GooglePayButton
                     environment="TEST"
                     paymentRequest={paymentRequest}
@@ -305,3 +308,5 @@ export default function CartPage() {
     </div>
   );
 }
+
+    
