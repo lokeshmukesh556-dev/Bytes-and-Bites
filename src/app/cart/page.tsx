@@ -21,7 +21,7 @@ import { useFirestore, useUser } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection, doc, runTransaction } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import GooglePayButton from '@google-pay/button-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -66,7 +66,6 @@ const upiPaymentMethod: google.payments.api.PaymentMethodSpecification = {
   },
 };
 
-
 export default function CartPage() {
   const {
     cartItems,
@@ -81,40 +80,17 @@ export default function CartPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentRequest, setPaymentRequest] = useState<google.payments.api.PaymentDataRequest | null>(null);
+  
+  // These states are essential to prevent SSR/hydration errors.
   const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     // This effect runs only on the client, after the initial render.
-    // This is safe for checking browser/device features.
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    setIsClient(true);
+    setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+  }, []);
 
-    const allowedPaymentMethods: google.payments.api.PaymentMethodSpecification[] = [cardPaymentMethod];
-    if (isMobile) {
-      allowedPaymentMethods.push(upiPaymentMethod);
-    }
-    
-    const newRequest: google.payments.api.PaymentDataRequest = {
-      ...baseRequest,
-      allowedPaymentMethods: allowedPaymentMethods,
-      merchantInfo: {
-        merchantName: 'Violet Bites',
-      },
-      transactionInfo: {
-        totalPriceStatus: 'FINAL',
-        totalPriceLabel: 'Total',
-        totalPrice: total.toFixed(2),
-        currencyCode: 'INR',
-        countryCode: 'IN',
-      },
-    };
-    setPaymentRequest(newRequest);
-
-  }, [total]);
 
   const handleProceedToPayment = async () => {
     if (!user || !firestore || cartItems.length === 0) return;
@@ -192,6 +168,38 @@ export default function CartPage() {
       setIsProcessing(false);
     }
   };
+
+  // Define two separate, complete payment request objects.
+  const desktopPaymentRequest: google.payments.api.PaymentDataRequest = {
+    ...baseRequest,
+    allowedPaymentMethods: [cardPaymentMethod],
+    merchantInfo: {
+      merchantName: 'Violet Bites',
+    },
+    transactionInfo: {
+      totalPriceStatus: 'FINAL',
+      totalPriceLabel: 'Total',
+      totalPrice: total.toFixed(2),
+      currencyCode: 'INR',
+      countryCode: 'IN',
+    },
+  };
+
+  const mobilePaymentRequest: google.payments.api.PaymentDataRequest = {
+    ...baseRequest,
+    allowedPaymentMethods: [cardPaymentMethod, upiPaymentMethod],
+    merchantInfo: {
+      merchantName: 'Violet Bites',
+    },
+    transactionInfo: {
+      totalPriceStatus: 'FINAL',
+      totalPriceLabel: 'Total',
+      totalPrice: total.toFixed(2),
+      currencyCode: 'INR',
+      countryCode: 'IN',
+    },
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -287,10 +295,15 @@ export default function CartPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                {isClient && paymentRequest && cartItems.length > 0 && (
+                {/* 
+                  This is the critical part:
+                  1. Only render when isClient is true.
+                  2. Directly choose the correct payment request object based on isMobile.
+                */}
+                {isClient && cartItems.length > 0 && (
                   <GooglePayButton
                     environment="TEST"
-                    paymentRequest={paymentRequest}
+                    paymentRequest={isMobile ? mobilePaymentRequest : desktopPaymentRequest}
                     onLoadPaymentData={handleProceedToPayment}
                     buttonType="pay"
                     buttonSizeMode="fill"
@@ -308,5 +321,3 @@ export default function CartPage() {
     </div>
   );
 }
-
-    
