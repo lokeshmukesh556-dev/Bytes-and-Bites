@@ -66,7 +66,6 @@ const upiPaymentMethod: google.payments.api.PaymentMethodSpecification = {
   },
 };
 
-
 export default function CartPage() {
   const {
     cartItems,
@@ -81,14 +80,38 @@ export default function CartPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   // This state is essential to prevent SSR/hydration errors with the GooglePayButton.
   const [isClient, setIsClient] = useState(false);
+  const [paymentRequest, setPaymentRequest] = useState<google.payments.api.PaymentDataRequest | null>(null);
 
   useEffect(() => {
     // This effect runs only on the client, after the initial render.
     setIsClient(true);
-  }, []);
+
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    const allowedPaymentMethods: google.payments.api.PaymentMethodSpecification[] = [cardPaymentMethod];
+    if (isMobile) {
+        allowedPaymentMethods.push(upiPaymentMethod);
+    }
+    
+    setPaymentRequest({
+        ...baseRequest,
+        allowedPaymentMethods: allowedPaymentMethods,
+        merchantInfo: {
+            merchantName: 'Violet Bites',
+        },
+        transactionInfo: {
+            totalPriceStatus: 'FINAL',
+            totalPriceLabel: 'Total',
+            totalPrice: total.toFixed(2),
+            currencyCode: 'INR',
+            countryCode: 'IN',
+        },
+    });
+
+  }, [total]);
 
 
   const handleProceedToPayment = async () => {
@@ -166,23 +189,6 @@ export default function CartPage() {
       });
       setIsProcessing(false);
     }
-  };
-
-  // A single, universal payment request that works for both mobile and desktop.
-  // Google Pay will automatically show the relevant options (UPI on mobile, Card on desktop).
-  const universalPaymentRequest: google.payments.api.PaymentDataRequest = {
-    ...baseRequest,
-    allowedPaymentMethods: [cardPaymentMethod, upiPaymentMethod],
-    merchantInfo: {
-      merchantName: 'Violet Bites',
-    },
-    transactionInfo: {
-      totalPriceStatus: 'FINAL',
-      totalPriceLabel: 'Total',
-      totalPrice: total.toFixed(2),
-      currencyCode: 'INR',
-      countryCode: 'IN',
-    },
   };
 
   return (
@@ -282,12 +288,12 @@ export default function CartPage() {
                 {/* 
                   This is the critical part:
                   We only render the GooglePayButton when isClient is true,
-                  ensuring it never renders on the server and avoids hydration errors.
+                  and a valid payment request has been built.
                 */}
-                {isClient && cartItems.length > 0 && (
+                {isClient && paymentRequest && cartItems.length > 0 && (
                   <GooglePayButton
                     environment="TEST"
-                    paymentRequest={universalPaymentRequest}
+                    paymentRequest={paymentRequest}
                     onLoadPaymentData={handleProceedToPayment}
                     buttonType="pay"
                     buttonSizeMode="fill"
