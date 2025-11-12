@@ -83,36 +83,45 @@ export default function CartPage() {
 
   // This state is essential to prevent SSR/hydration errors with the GooglePayButton.
   const [isClient, setIsClient] = useState(false);
-  const [paymentRequest, setPaymentRequest] = useState<google.payments.api.PaymentDataRequest | null>(null);
+  const [paymentRequest, setPaymentRequest] =
+    useState<google.payments.api.PaymentDataRequest | null>(null);
 
   useEffect(() => {
     // This effect runs only on the client, after the initial render.
     setIsClient(true);
+  }, []);
 
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    const allowedPaymentMethods: google.payments.api.PaymentMethodSpecification[] = [cardPaymentMethod];
-    if (isMobile) {
+  useEffect(() => {
+    // This effect now correctly depends on `total` to rebuild the payment request
+    // whenever the cart total changes. This is critical.
+    if (typeof window !== 'undefined') {
+      const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+
+      const allowedPaymentMethods: google.payments.api.PaymentMethodSpecification[] =
+        [cardPaymentMethod];
+      if (isMobile) {
         allowedPaymentMethods.push(upiPaymentMethod);
-    }
-    
-    setPaymentRequest({
+      }
+
+      setPaymentRequest({
         ...baseRequest,
         allowedPaymentMethods: allowedPaymentMethods,
         merchantInfo: {
-            merchantName: 'Violet Bites',
+          merchantName: 'Violet Bites',
         },
         transactionInfo: {
-            totalPriceStatus: 'FINAL',
-            totalPriceLabel: 'Total',
-            totalPrice: total.toFixed(2),
-            currencyCode: 'INR',
-            countryCode: 'IN',
+          totalPriceStatus: 'FINAL',
+          totalPriceLabel: 'Total',
+          totalPrice: total.toFixed(2), // Always use the latest total
+          currencyCode: 'INR',
+          countryCode: 'IN',
         },
-    });
-
-  }, [total]);
-
+      });
+    }
+  }, [total]); // Dependency on `total` ensures the request is always up-to-date.
 
   const handleProceedToPayment = async () => {
     if (!user || !firestore || cartItems.length === 0) return;
@@ -140,52 +149,57 @@ export default function CartPage() {
       await runTransaction(firestore, async (transaction) => {
         // Phase 1: Read all necessary documents first.
         const stockReads = await Promise.all(
-          cartItems.map(item => {
+          cartItems.map((item) => {
             const menuItemRef = doc(firestore, 'menu_items', item.id);
-            return transaction.get(menuItemRef).then(menuItemDoc => ({
+            return transaction.get(menuItemRef).then((menuItemDoc) => ({
               item,
               menuItemRef,
               menuItemDoc,
             }));
           })
         );
-      
+
         // Phase 2: Perform all writes based on the reads.
         for (const { item, menuItemRef, menuItemDoc } of stockReads) {
           if (!menuItemDoc.exists()) {
             throw `Menu item ${item.name} not found!`;
           }
-      
+
           const currentStock = menuItemDoc.data().stock;
           const newStock = currentStock - item.quantity;
-      
+
           if (newStock < 0) {
             throw `Not enough stock for ${item.name}. Only ${currentStock} left.`;
           }
-      
+
           // Add item to the order's subcollection
-          const newOrderItemRef = doc(collection(firestore, `users/${user.uid}/orders/${newOrderRef.id}/order_items`));
+          const newOrderItemRef = doc(
+            collection(
+              firestore,
+              `users/${user.uid}/orders/${newOrderRef.id}/order_items`
+            )
+          );
           transaction.set(newOrderItemRef, {
             orderId: newOrderRef.id,
             menuItemId: item.id,
             quantity: item.quantity,
             price: item.price,
           });
-      
+
           // Decrease the stock for the menu item
           transaction.update(menuItemRef, { stock: newStock });
         }
       });
-      
+
       // 3. Navigate to confirmation page
       router.push(`/order-confirmation/${newOrderRef.id}`);
-
     } catch (error: any) {
       console.error('Error creating order and updating stock:', error);
       toast({
         variant: 'destructive',
         title: 'Order Failed',
-        description: error.message || 'Could not place your order. Please try again.',
+        description:
+          error.message || 'Could not place your order. Please try again.',
       });
       setIsProcessing(false);
     }
@@ -288,7 +302,7 @@ export default function CartPage() {
                 {/* 
                   This is the critical part:
                   We only render the GooglePayButton when isClient is true,
-                  and a valid payment request has been built.
+                  a valid payment request has been built, and the cart is not empty.
                 */}
                 {isClient && paymentRequest && cartItems.length > 0 && (
                   <GooglePayButton
