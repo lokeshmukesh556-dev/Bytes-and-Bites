@@ -66,6 +66,7 @@ const upiPaymentMethod: google.payments.api.PaymentMethodSpecification = {
   },
 };
 
+
 export default function CartPage() {
   const {
     cartItems,
@@ -81,14 +82,12 @@ export default function CartPage() {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // These states are essential to prevent SSR/hydration errors.
+  // This state is essential to prevent SSR/hydration errors with the GooglePayButton.
   const [isClient, setIsClient] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     // This effect runs only on the client, after the initial render.
     setIsClient(true);
-    setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
   }, []);
 
 
@@ -169,23 +168,9 @@ export default function CartPage() {
     }
   };
 
-  // Define two separate, complete payment request objects.
-  const desktopPaymentRequest: google.payments.api.PaymentDataRequest = {
-    ...baseRequest,
-    allowedPaymentMethods: [cardPaymentMethod],
-    merchantInfo: {
-      merchantName: 'Violet Bites',
-    },
-    transactionInfo: {
-      totalPriceStatus: 'FINAL',
-      totalPriceLabel: 'Total',
-      totalPrice: total.toFixed(2),
-      currencyCode: 'INR',
-      countryCode: 'IN',
-    },
-  };
-
-  const mobilePaymentRequest: google.payments.api.PaymentDataRequest = {
+  // A single, universal payment request that works for both mobile and desktop.
+  // Google Pay will automatically show the relevant options (UPI on mobile, Card on desktop).
+  const universalPaymentRequest: google.payments.api.PaymentDataRequest = {
     ...baseRequest,
     allowedPaymentMethods: [cardPaymentMethod, upiPaymentMethod],
     merchantInfo: {
@@ -199,7 +184,6 @@ export default function CartPage() {
       countryCode: 'IN',
     },
   };
-
 
   return (
     <div className="min-h-screen bg-background">
@@ -297,13 +281,13 @@ export default function CartPage() {
               <CardFooter>
                 {/* 
                   This is the critical part:
-                  1. Only render when isClient is true.
-                  2. Directly choose the correct payment request object based on isMobile.
+                  We only render the GooglePayButton when isClient is true,
+                  ensuring it never renders on the server and avoids hydration errors.
                 */}
                 {isClient && cartItems.length > 0 && (
                   <GooglePayButton
                     environment="TEST"
-                    paymentRequest={isMobile ? mobilePaymentRequest : desktopPaymentRequest}
+                    paymentRequest={universalPaymentRequest}
                     onLoadPaymentData={handleProceedToPayment}
                     buttonType="pay"
                     buttonSizeMode="fill"
