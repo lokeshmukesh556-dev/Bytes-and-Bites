@@ -52,6 +52,7 @@ export default function LoginPage() {
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isSigningInAnonymously, setIsSigningInAnonymously] = useState(false);
 
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPassword, setCustomerPassword] = useState('');
@@ -68,10 +69,16 @@ export default function LoginPage() {
   }, [user, router]);
 
   useEffect(() => {
-    if (auth && !user && !isUserLoading) {
+    // This lock prevents multiple sign-in attempts during rapid re-renders.
+    if (auth && !user && !isUserLoading && !isSigningInAnonymously) {
+      setIsSigningInAnonymously(true);
       initiateAnonymousSignIn(auth);
     }
-  }, [auth, user, isUserLoading]);
+    // Cleanup function to reset the lock if the component unmounts.
+    return () => {
+        setIsSigningInAnonymously(false);
+    }
+  }, [auth, user, isUserLoading, isSigningInAnonymously]);
 
   const handleCustomerLogin = () => {
     if (auth) {
