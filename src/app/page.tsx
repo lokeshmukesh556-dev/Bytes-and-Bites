@@ -78,7 +78,7 @@ export default function LoginPage() {
     return () => {
         setIsSigningInAnonymously(false);
     }
-  }, [auth, user, isUserLoading, isSigningInAnonymously]);
+  }, [auth, user, isUserLoading]);
 
   const handleCustomerLogin = () => {
     if (auth) {
