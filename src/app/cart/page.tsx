@@ -83,45 +83,12 @@ export default function CartPage() {
 
   // This state is essential to prevent SSR/hydration errors with the GooglePayButton.
   const [isClient, setIsClient] = useState(false);
-  const [paymentRequest, setPaymentRequest] =
-    useState<google.payments.api.PaymentDataRequest | null>(null);
 
   useEffect(() => {
     // This effect runs only on the client, after the initial render.
     setIsClient(true);
   }, []);
 
-  useEffect(() => {
-    // This effect now correctly depends on `total` to rebuild the payment request
-    // whenever the cart total changes. This is critical.
-    if (typeof window !== 'undefined') {
-      const isMobile =
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-          navigator.userAgent
-        );
-
-      const allowedPaymentMethods: google.payments.api.PaymentMethodSpecification[] =
-        [cardPaymentMethod];
-      if (isMobile) {
-        allowedPaymentMethods.push(upiPaymentMethod);
-      }
-
-      setPaymentRequest({
-        ...baseRequest,
-        allowedPaymentMethods: allowedPaymentMethods,
-        merchantInfo: {
-          merchantName: 'Violet Bites',
-        },
-        transactionInfo: {
-          totalPriceStatus: 'FINAL',
-          totalPriceLabel: 'Total',
-          totalPrice: total.toFixed(2), // Always use the latest total
-          currencyCode: 'INR',
-          countryCode: 'IN',
-        },
-      });
-    }
-  }, [total]); // Dependency on `total` ensures the request is always up-to-date.
 
   const handleProceedToPayment = async () => {
     if (!user || !firestore || cartItems.length === 0) return;
@@ -204,6 +171,57 @@ export default function CartPage() {
       setIsProcessing(false);
     }
   };
+
+  const renderGooglePayButton = () => {
+    // Only render on the client
+    if (!isClient) {
+      return null;
+    }
+
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      );
+
+    const allowedPaymentMethods: google.payments.api.PaymentMethodSpecification[] = [cardPaymentMethod];
+    if (isMobile) {
+      allowedPaymentMethods.push(upiPaymentMethod);
+    }
+
+    const paymentRequest: google.payments.api.PaymentDataRequest = {
+      ...baseRequest,
+      allowedPaymentMethods: allowedPaymentMethods,
+      merchantInfo: {
+        merchantName: 'Violet Bites',
+      },
+      transactionInfo: {
+        totalPriceStatus: 'FINAL',
+        totalPriceLabel: 'Total',
+        totalPrice: total.toFixed(2),
+        currencyCode: 'INR',
+        countryCode: 'IN',
+      },
+    };
+
+    if (cartItems.length === 0) {
+        return null;
+    }
+
+    return (
+      <GooglePayButton
+        environment="TEST"
+        paymentRequest={paymentRequest}
+        onLoadPaymentData={handleProceedToPayment}
+        buttonType="pay"
+        buttonSizeMode="fill"
+        style={{
+          width: '100%',
+        }}
+        disabled={isProcessing}
+      />
+    );
+  }
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -299,24 +317,7 @@ export default function CartPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                {/* 
-                  This is the critical part:
-                  We only render the GooglePayButton when isClient is true,
-                  a valid payment request has been built, and the cart is not empty.
-                */}
-                {isClient && paymentRequest && cartItems.length > 0 && (
-                  <GooglePayButton
-                    environment="TEST"
-                    paymentRequest={paymentRequest}
-                    onLoadPaymentData={handleProceedToPayment}
-                    buttonType="pay"
-                    buttonSizeMode="fill"
-                    style={{
-                      width: '100%',
-                    }}
-                    disabled={isProcessing}
-                  />
-                )}
+                {renderGooglePayButton()}
               </CardFooter>
             </Card>
           </div>
